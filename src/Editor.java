@@ -12,30 +12,27 @@ public class Editor {
 		
 		JFrame frame = new JFrame("Text Editor");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 		JPanel panel = new TextAreaPanel();
+		
+		
 		JMenuBar menuBar = new JMenuBar();	
 		
-		frame.setJMenuBar(menuBar);
+
 		
-		JMenu menu = new JMenu();
-		
-		JMenuItem item = new JMenuItem("File");
-		JMenuItem item2 = new JMenuItem("Edit");
-		JMenuItem item3 = new JMenuItem("View");
-		
-		item.setName("EREJRWJEKLRJEWLJR");
-		
-		menu.add(item);
-		menu.add(item2);
-		menu.add(item3);
+		JMenu menu = new EditorMenu();
 		
 		menuBar.add(menu);
+		
+		frame.setJMenuBar(menuBar);
 		
 		
 		
 		frame.setContentPane(panel);
 		//frame.setSize(new Dimension(400,400));
 		frame.pack();
+		
+		menuBar.setVisible(true);
 		frame.setVisible(true);
 		
 	}
