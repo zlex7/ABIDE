@@ -6,7 +6,6 @@ public class GraphicsRunner {
 
 		Editor editor = new Editor();
 		SwingUtilities.invokeLater(new Runnable(){
-			
 			public void run(){
 				editor.runGraphics();
 			}
