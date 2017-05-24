@@ -1,4 +1,5 @@
 import java.awt.Dimension;
+import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -23,7 +24,7 @@ public class Editor implements ActionListener {
 	File currentFile;
 	String[] fileItems = { "New", "Open", "Save", "Save as" };
 	String[] editItems = { "Cut", "Copy", "Paste" };
-
+	private String copiedText;
 	public void runGraphics() {
 
 		frame = new JFrame("Text Editor");
@@ -74,110 +75,154 @@ public class Editor implements ActionListener {
 		// a submenu
 
 	}
-
-	public void actionPerformed(ActionEvent e){
+	
+	public void actionPerformed(ActionEvent e) {
 		
 		if(e.getSource() instanceof JMenuItem){
 			
-			JFileChooser fileChooser;
-			int returned;
 			JMenuItem source = (JMenuItem)e.getSource();
 		
 		switch(source.getText()){
 		
 		case "New":
 			
-			fileChooser = new JFileChooser();
-			
-			returned = fileChooser.showDialog(frame, "Create");
-			
-			if(returned == JFileChooser.APPROVE_OPTION){
-				
-				currentFile = fileChooser.getSelectedFile();
-				
-				currentFile = new File(currentFile.getName());
+			try{
+				handleNew();
+			}catch(IOException err){
+				err.printStackTrace();
 			}
+		break;	
 		case "Open":
 			
-			fileChooser = new JFileChooser();
+			handleOpen();
 			
-			returned = fileChooser.showOpenDialog(frame);
+			break;
+		case "Save":
 			
-			if(returned == JFileChooser.APPROVE_OPTION){
-				
-				currentFile = fileChooser.getSelectedFile();
-				
-				
-				if(currentFile.exists()){
-					BufferedReader reader = null;
-				
-					try{
-						reader = new BufferedReader(new FileReader(currentFile));
-					}
-					catch(FileNotFoundException err){
-						JOptionPane.showMessageDialog(frame, "That file does not exist");
-					}
-				
-					StringBuilder input = new StringBuilder("");
-				
-					String line;
-					
-					try{
-						while((line = reader.readLine()) != null){
-				
-							input.append(line).append("\n");
-				
-						}
-					}
-					catch(IOException err){
-						err.printStackTrace();
-					}
-				
-					panel.setText(input.toString());
-				
-					JOptionPane.showMessageDialog(frame, "You chose file " + currentFile.getName());
-					
+			handleSave();
+			
+			break;
+		case "Save as":
+			
+			break;
+		case "Cut":
+			
+			handleCut();
+			break;
+		case "Copy":
+			
+			handleCopy();
+			break;
+		case "Paste":
+			
+			handlePaste();
+			break;
+		}
+		
+		}
+		
+		
+	}
+	
+	public void handleNew() throws IOException{
+		JFileChooser fileChooser = new JFileChooser();
+		
+		int returned = fileChooser.showDialog(frame, "Create");
+		
+		if(returned == JFileChooser.APPROVE_OPTION){
+			
+			currentFile = fileChooser.getSelectedFile();
+			
+			//int last = currentFile.getAbsolutePath().lastIndexOf('.');
+			//String extension = currentFile.getAbsolutePath().substring(last);
+			
+			//File newFile = new File(currentFile.getName());
+			PrintWriter writer = new PrintWriter(new FileWriter(currentFile));
+			
+			
+			writer.print("");
+			
+			writer.close();
+		}
+	}
+	
+	public void handleOpen(){
+		JFileChooser fileChooser = new JFileChooser();
+		
+		int returned = fileChooser.showOpenDialog(frame);
+		
+		if(returned == JFileChooser.APPROVE_OPTION){
+			
+			currentFile = fileChooser.getSelectedFile();
+			
+			
+			if(currentFile.exists()){
+				BufferedReader reader = null;
+			
+				try{
+					reader = new BufferedReader(new FileReader(currentFile));
 				}
-				
-				else{
-					
-					JOptionPane.showMessageDialog(frame, "File " + currentFile.getName() + " does not exist.");
-					
+				catch(FileNotFoundException err){
+					JOptionPane.showMessageDialog(frame, "That file does not exist");
 				}
-			}
 			
-			else if(returned == JFileChooser.CANCEL_OPTION){
+				StringBuilder input = new StringBuilder("");
+			
+				String line;
 				
+				try{
+					while((line = reader.readLine()) != null){
+			
+						input.append(line).append("\n");
+			
+					}
+				}
+				catch(IOException err){
+					err.printStackTrace();
+				}
+			
+				panel.setText(input.toString());
+			
+				JOptionPane.showMessageDialog(frame, "You chose file " + currentFile.getName());
 				
 			}
 			
 			else{
 				
-				JOptionPane.showMessageDialog(frame, "Invalid file choice.");
+				JOptionPane.showMessageDialog(frame, "File " + currentFile.getName() + " does not exist.");
 				
 			}
+		}
+		
+		else if(returned == JFileChooser.CANCEL_OPTION){
 			
-			break;
-		case "Save":
 			
-			if(currentFile == null){
+		}
+		
+		else{
+			
+			JOptionPane.showMessageDialog(frame, "Invalid file choice.");
+			
+		}
+	}
+	
+	public void handleSave(){
+		
+		if(currentFile == null){
+			
+			JFileChooser fileChooser = new JFileChooser();
+			
+			int returned = fileChooser.showSaveDialog(frame);
+			
+			if(returned == JFileChooser.APPROVE_OPTION){
 				
-				fileChooser = new JFileChooser();
+				File file = fileChooser.getSelectedFile();
 				
-				returned = fileChooser.showSaveDialog(frame);
-				
-				if(returned == JFileChooser.APPROVE_OPTION){
+				if(file.exists()){
 					
-					File file = fileChooser.getSelectedFile();
+					returned = JOptionPane.showConfirmDialog(frame, "Do you wish to overwrite file " + file.getName(),"Overwrite File",JOptionPane.YES_NO_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE);
 					
-					if(file.exists()){
-						
-						JOptionPane.showConfirmDialog(frame, "Do you wish to overwrite file " + file.getName());
-						
-					}
-					
-					else{
-						
+					if(returned==JOptionPane.YES_OPTION){
 						try{
 							FileWriter writer = new FileWriter(file);
 						
@@ -190,28 +235,77 @@ public class Editor implements ActionListener {
 						}
 					}
 					
-					
-					
+					else if(returned == JOptionPane.NO_OPTION){
+						
+					}
 				}
+				
+				else{
+					
+					try{
+						FileWriter writer = new FileWriter(file);
+					
+						writer.write(panel.getText());
+					
+						writer.close();
+					}
+					catch(IOException err){
+						JOptionPane.showMessageDialog(frame,"File could not be saved");
+					}
+				}
+				
+				
+				
+			}
+		}
+		
+		else{
+			
+			try{
+				FileWriter writer = new FileWriter(currentFile);
+			
+				writer.write(panel.getText());
+			
+				writer.close();
+			}
+			catch(IOException err){
+				JOptionPane.showMessageDialog(frame,"File could not be saved");
 			}
 			
-			break;
-		case "Save as":
-			
-			break;
-		case "Cut":
-			
-			break;
-		case "Copy":
-			
-			break;
-		case "Paste":
-			
-			break;
+		}
+	}
+	
+	public void handleCopy(){
+		
+		copiedText = panel.getTextArea().getSelectedText();
+		
+	}
+	
+	public void handleCut(){
+		
+		TextArea textArea = panel.getTextArea();
+		
+		copiedText = textArea.getSelectedText();
+		
+		textArea.replaceRange("", textArea.getSelectionStart(), textArea.getSelectionEnd());
+		
+		
+	}
+	public void handlePaste(){
+		
+		TextArea textArea = panel.getTextArea();
+		
+		int selecStart = textArea.getSelectionStart();
+		int selecEnd = textArea.getSelectionEnd();
+		
+		System.out.println(textArea.getSelectedText());
+		
+		if(selecStart==selecEnd){
+			textArea.insert(copiedText, selecStart);
 		}
 		
+		else{
+			textArea.replaceRange(copiedText, selecStart, selecEnd);
 		}
-		
-		
 	}
 }

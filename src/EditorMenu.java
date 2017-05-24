@@ -1,5 +1,6 @@
+import java.util.Arrays;
+
 import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 
 public class EditorMenu extends JMenu {
 	
