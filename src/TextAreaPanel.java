@@ -3,10 +3,11 @@ import java.awt.Graphics;
 import java.awt.TextArea;
 
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 public class TextAreaPanel extends JPanel{
 	
-	TextArea textArea = new TextArea();
+	JTextArea textArea = new JTextArea();
 	
 	public TextAreaPanel(){
 		
@@ -27,7 +28,7 @@ public class TextAreaPanel extends JPanel{
 		
 	}
 	
-	public TextArea getTextArea(){
+	public JTextArea getTextArea(){
 		
 		return textArea;
 		
