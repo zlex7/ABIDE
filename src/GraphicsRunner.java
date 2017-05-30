@@ -1,3 +1,6 @@
+import java.io.IOException;
+
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 public class GraphicsRunner {
@@ -6,8 +9,13 @@ public class GraphicsRunner {
 
 		Editor editor = new Editor();
 		SwingUtilities.invokeLater(new Runnable(){
-			public void run(){
-				editor.runGraphics();
+			public void run() {
+				try{
+					editor.runGraphics();
+				}
+				catch(IOException e){
+					JOptionPane.showMessageDialog(editor.frame, "An error occurred");
+				}
 			}
 		});
 

@@ -1,28 +1,38 @@
 import java.awt.Component;
 
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 
 public class Scroller extends JScrollPane{
 	
-	private TextAreaPanel textArea;
-	public Scroller(TextAreaPanel textArea){
+	TextAreaPanel textArea;
+	
+	public Scroller(JPanel panel){
 		
-		setViewportView(textArea);
+		setViewportView(panel);
 		
-		this.textArea = textArea;
+		textArea = (TextAreaPanel)panel.getComponent(1);
+		
+	}
+
+	public TextAreaPanel getTextArea(){
+		
+		return textArea;
+		
+	}
+	
+	public void setViewportView(TextAreaPanel c){
+		
+		super.setViewportView(c);
 		
 	}
 	
 	public void setViewportView(Component c){
 		
 		super.setViewportView(c);
-		
-		this.textArea = (TextAreaPanel)c;
+
 	}
-	public TextAreaPanel getTextArea(){
-		
-		return textArea;
-		
-	}
+
 
 }
