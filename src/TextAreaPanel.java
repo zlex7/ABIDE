@@ -2,21 +2,22 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.ArrayList;
 
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.DocumentFilter;
-import javax.swing.text.AttributeSet;
 import javax.swing.text.Utilities;
 
 
@@ -27,9 +28,13 @@ public class TextAreaPanel extends JPanel{
 	boolean isNew = false;
 	HashSet<String> keywords = new HashSet<String>();
 	StyleContext styleContext = new StyleContext();
+	SimpleAttributeSet keywordAttributes;
+	SimpleAttributeSet normalAttributes;
 
 	public TextAreaPanel() {
 
+		
+		
 		setLayout(new BorderLayout());
 		add(textArea);
 		
@@ -37,7 +42,17 @@ public class TextAreaPanel extends JPanel{
 		
 		StyleConstants.setForeground(style, Color.BLUE);
 		
-
+		normalAttributes = new SimpleAttributeSet();
+		
+		normalAttributes.addAttributes(textArea.getInputAttributes());
+		
+		keywordAttributes = new SimpleAttributeSet();
+		
+		keywordAttributes.addAttributes(textArea.getInputAttributes());
+		
+		keywordAttributes.addAttributes(styleContext.getStyle("keywords"));
+		//keywordAttributes.addAttributes(styleContext.getStyle("keywords"));
+		
 	}
 
 	public TextAreaPanel(HashSet<String> keywords, Style keywordStyle) {
@@ -270,7 +285,41 @@ public class TextAreaPanel extends JPanel{
 		    @Override
 		    public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attributeSet) throws BadLocationException {
 			
-
+		    int originalOff= offset;
+		    int originalLength = length;
+		    
+		    if(attributeSet.containsAttributes(styleContext.getStyle("keywords"))){
+		    	attributeSet=normalAttributes;
+		    }
+		    	
+		    Pattern p = Pattern.compile("^[a-zA-Z]");
+		    if(Character.isAlphabetic(text.charAt(0))){
+		    	
+		    	int tempOffset = offset-10;
+		    	String tempText = d.getText(tempOffset, 10);
+		    		
+		    		
+		    		offset-=10;
+		    		
+		    		length+=10;
+		    		
+		    		text= tempText + text;
+		    	
+		    	
+		    }
+		    
+		    if(Character.isAlphabetic(text.charAt(text.length()-1))){
+		    	
+		    	if(offset+length+10<=d.getLength()){
+		    		String tempText = d.getText(offset+length, 10);
+		    		length+=10;
+		    		text+=tempText;
+		    	}
+		    	
+		    }
+		    
+		    System.out.println("text: " + text);
+		    
 			super.remove(fb,offset,length);
 
 			ArrayList<Integer> indexes = new ArrayList<Integer>();
@@ -279,7 +328,7 @@ public class TextAreaPanel extends JPanel{
 			int i = 0;
 			if (Character.isAlphabetic(text.charAt(i))) {
 				i++;
-				while (Character.isAlphabetic(text.charAt(i))) {
+				while (i<text.length() && Character.isAlphabetic(text.charAt(i))) {
 					i++;
 				}
 				String word = text.substring(0, i);
@@ -290,7 +339,7 @@ public class TextAreaPanel extends JPanel{
 				}
 			}
 			
-			Pattern p = Pattern.compile("(?<=\\W)[a-z]+(?=\\W)");
+			p = Pattern.compile("(?<=\\W)[a-z]+(?=\\W)");
 			Matcher m = p.matcher(text);
 
 			System.out.println("finding keywords in replace: ");
@@ -303,6 +352,7 @@ public class TextAreaPanel extends JPanel{
 				System.out.println(word);
 
 				if (keywords.contains(word)) {
+					System.out.println("keyword");
 					int start = m.start();
 					System.out.println("start: " + start);
 					indexes.add(start);
@@ -319,11 +369,16 @@ public class TextAreaPanel extends JPanel{
 					int first = indexes.get(i);
 					int second = indexes.get(i+1);
 
-						super.insertString(fb,offset+first,text.substring(first,second),styleContext.getStyle("keywords"));
+						super.insertString(fb,offset+first,text.substring(first,second),keywordAttributes);
 						
-						super.insertString(fb,offset+second,text.substring(second,indexes.get(i+2)),attributeSet);
-							
+						
+						
+						if(i+2<indexes.size()){
+							super.insertString(fb,offset+second,text.substring(second,indexes.get(i+2)),attributeSet);
+						}	
 					}
+				
+				super.insertString(fb, offset+indexes.get(indexes.size()-1), text.substring(indexes.get(indexes.size()-1)), attributeSet);
 			
 		    	}
 
@@ -332,7 +387,8 @@ public class TextAreaPanel extends JPanel{
 				super.insertString(fb,offset,text,attributeSet);
 
 			}
-
+				
+				textArea.setCaretPosition(originalOff+originalLength+1);
 			}
 
     		    }

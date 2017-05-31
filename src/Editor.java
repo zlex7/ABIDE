@@ -202,38 +202,9 @@ public class Editor implements ActionListener {
 	}
 	
 	
-		public void setKeywordListener(JTextPane pane){
-		
-		Document d = pane.getDocument();
-		
-		d.addDocumentListener(new DocumentListener(){
-			
-			public void insertUpdate(DocumentEvent e) {
-		        
-				updateKeywords();
-			 	
-		    }
-		    public void removeUpdate(DocumentEvent e) {
-		        
-		    	updateKeywords();
-		    		
-		    }
-		    public void changedUpdate(DocumentEvent e) {
-		    
-		    	updateKeywords();
-		    	
-		    }
-		    
-		  
-		    public void updateKeywords(){
-			 
-		    	
-		 	}
-		 
-		});
 		
 		
-	}
+	
 	public void setLineListener(TextAreaPanel p, LineNumberList lines){
 		
 		JTextPane area = p.getTextArea();
@@ -883,6 +854,7 @@ public class Editor implements ActionListener {
 				try{
 					System.out.println("updating keywords");
 					textArea.updateKeywords();
+					textArea.setKeywordListener();
 				}
 				catch(BadLocationException e){
 					e.printStackTrace();

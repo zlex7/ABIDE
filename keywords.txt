@@ -1,4 +1,5 @@
-[java]abstract	continue	for	new	switch
+[java]
+abstract	continue	for	new	switch
 assert	default	goto	package	synchronized
 boolean	do	if	private	this
 break	double	implements	protected	throw
