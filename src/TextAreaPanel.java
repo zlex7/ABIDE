@@ -26,7 +26,7 @@ public class TextAreaPanel extends JPanel{
 	JTextPane textArea = new JTextPane();
 	File file;
 	boolean isNew = false;
-	HashSet<String> keywords = new HashSet<String>();
+	HashMap<String,HashSet<String>> keywords = new HashMap<String,HashSet<String>>();
 	StyleContext styleContext = new StyleContext();
 	SimpleAttributeSet keywordAttributes;
 	SimpleAttributeSet normalAttributes;
@@ -55,14 +55,14 @@ public class TextAreaPanel extends JPanel{
 		
 	}
 
-	public TextAreaPanel(HashSet<String> keywords, Style keywordStyle) {
+	public TextAreaPanel(HashMap<String,HashSet<String>> keywords, Style keywordStyle) {
 
 		this();
 
 		this.keywords = keywords;
 	}
 	
-	public TextAreaPanel(HashSet<String> keywords, Style keywordStyle, File file) {
+	public TextAreaPanel(HashMap<String,HashSet<String>> keywords, Style keywordStyle, File file) {
 
 		this();
 
@@ -116,9 +116,9 @@ public class TextAreaPanel extends JPanel{
 	}
 
 	
-	public void setKeywords(HashSet<String> keywords){
+	public void setKeywords(HashMap<String,HashSet<String>> keywords){
 		
-		this.keywords.addAll(keywords);
+		this.keywords = keywords;
 		
 	}
 	
@@ -130,6 +130,19 @@ public class TextAreaPanel extends JPanel{
 	public boolean getIsNew(){
 		
 		return isNew;
+	}
+
+	public String getKeywordStyle(String word){
+
+		for(String key : this.keywords.keySet()){
+			HashSet<String> words = this.keywords.get(key);			
+			if(words.contains(word)){
+				return key;
+			}	
+
+		}
+
+		return null;
 	}
 
 	public void updateKeywords() throws BadLocationException {
@@ -154,9 +167,10 @@ public class TextAreaPanel extends JPanel{
 				}
 				String word = text.substring(0, i);
 				System.out.println("word: " + word);
-				if (keywords.contains(word)) {
+				String style = getKeywordStyle(word);
+				if (style != null) {
 					d.remove(0, i);
-					d.insertString(0, word, styleContext.getStyle("keywords"));
+					d.insertString(0, word, styleContext.getStyle(style));
 				}
 			}
 
@@ -170,12 +184,13 @@ public class TextAreaPanel extends JPanel{
 
 				System.out.println(keywords);
 				System.out.println(word);
-
-				if (keywords.contains(word)) {
+				
+				String style = getKeywordStyle(word);
+				if (style != null) {
 					int start = m.start();
 					System.out.println("start: " + start);
 					d.remove(start, word.length());
-					d.insertString(start, word, styleContext.getStyle("keywords"));
+					d.insertString(start, word, styleContext.getStyle(style));
 				}
 				
 				
@@ -210,7 +225,9 @@ public class TextAreaPanel extends JPanel{
 				}
 				String word = text.substring(0, i);
 				System.out.println("word: " + word);
-				if (keywords.contains(word)) {
+
+				String style = getKeywordStyle(word);
+				if (style != null) {
 					indexes.add(0);
 					indexes.add(i);
 				}
@@ -226,8 +243,9 @@ public class TextAreaPanel extends JPanel{
 
 				System.out.println(keywords);
 				System.out.println(word);
-
-				if (keywords.contains(word)) {
+				
+				String style = getKeywordStyle(word);
+				if (style != null) {
 					int start = m.start();
 					System.out.println("start: " + start);
 					indexes.add(start);
@@ -243,8 +261,8 @@ public class TextAreaPanel extends JPanel{
 
 					int first = indexes.get(i);
 					int second = indexes.get(i+1);
-
-						super.insertString(fb,offset+first,text.substring(first,second),styleContext.getStyle("keywords"));
+					String temp = text.substring(first,second);
+						super.insertString(fb,offset+first,temp,styleContext.getStyle(getKeywordStyle(temp)));
 						
 						super.insertString(fb,offset+second,text.substring(second,indexes.get(i+2)),attributeSet);
 							

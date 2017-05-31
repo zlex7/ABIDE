@@ -46,7 +46,7 @@ public class Editor implements ActionListener {
 	String[] fileItems = { "New", "Open", "Save", "Save as", "Close", "Exit" };
 	String[] editItems = { "Cut", "Copy", "Paste" };
 	String[] viewItems = {};
-	private HashMap<String,HashSet<String>> keywords = new HashMap<String,HashSet<String>>();
+	private HashMap<String,HashMap<String,HashSet<String>>> keywords = new HashMap<String,HashMap<String,HashSet<String>>>();
 	private String copiedText;
 	
 	public void runGraphics() throws IOException {
@@ -168,21 +168,37 @@ public class Editor implements ActionListener {
 		System.out.println(Arrays.toString(sections));
 		
 		System.out.println("first element : " +sections[0]);
+
 		
+		p=Pattern.compile("--[a-zA-Z]+");
+
 		for(int i =0;i<languages.size();i++){
 			
-			HashSet<String> temp = new HashSet<String>();
+			String textTemp = sections[i+1].trim();			
+			String[] keywordSections = textTemp.split("--[a-zA-Z]+");
 			
-			String[] keywords = sections[i+1].trim().split("\\s+");
+			m = p.matcher(textTemp);
+				
+			System.out.println(Arrays.toString(keywordSections));
 			
-			System.out.println(Arrays.toString(keywords));
-			for(String keyword: keywords){
+			HashMap<String,HashSet<String>> tempMap = new HashMap<String,HashSet<String>>();
+			for(String section : keywordSections){
 				
-				temp.add(keyword);
+				String[] keywords = section.split("\\s+");
+
+				System.out.println(Arrays.toString(keywords));
 				
+
+				HashSet<String> temp = new HashSet<String>();
+				for(String keyword: keywords){
+				
+					temp.add(keyword);
+				}
+				
+				tempMap.put(m.group(),temp);
 			}
 			
-			this.keywords.put(languages.get(i), temp);
+			this.keywords.put(languages.get(i), tempMap);
 		}
 	}
 	
