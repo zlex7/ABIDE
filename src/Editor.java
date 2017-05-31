@@ -5,6 +5,9 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.Color;
+
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -170,7 +173,7 @@ public class Editor implements ActionListener {
 		System.out.println("first element : " +sections[0]);
 
 		
-		p=Pattern.compile("--[a-zA-Z]+");
+		p=Pattern.compile("(?<=--)[a-zA-Z]+");
 
 		for(int i =0;i<languages.size();i++){
 			
@@ -194,8 +197,12 @@ public class Editor implements ActionListener {
 				
 					temp.add(keyword);
 				}
-				
-				tempMap.put(m.group(),temp);
+				if(m.find()){
+					tempMap.put(m.group(),temp);
+				}
+				else{
+					throw new IOException("keywords.txt format is incorrect");
+				}
 			}
 			
 			this.keywords.put(languages.get(i), tempMap);

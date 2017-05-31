@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -119,6 +120,66 @@ public class TextAreaPanel extends JPanel{
 	public void setKeywords(HashMap<String,HashSet<String>> keywords){
 		
 		this.keywords = keywords;
+	
+		for(String key : keywords.keySet()){
+			
+			Style style;
+			
+			switch(key){
+				
+				case "access":
+				
+					style = styleContext.addStyle(key,null);
+						
+					StyleConstants.setForeground(style,Color.GREEN);
+				break;
+
+				case "modifiers":
+					
+					style = styleContext.addStyle(key,null);
+						
+					StyleConstants.setForeground(style,Color.GREEN);
+
+				break;
+
+				case "controlflow":
+
+					style = styleContext.addStyle(key,null);
+						
+					StyleConstants.setForeground(style,Color.RED);
+
+				break;
+
+				case "datatypes":
+
+					style = styleContext.addStyle(key,null);
+						
+					StyleConstants.setForeground(style,Color.ORANGE);
+
+				break;
+
+				case "errors":
+
+					style = styleContext.addStyle(key,null);
+						
+					StyleConstants.setForeground(style,Color.CYAN);
+			
+				break;
+		
+				case "other":
+
+					style = styleContext.addStyle(key,null);
+						
+					StyleConstants.setForeground(style,Color.GRAY);
+
+				break;
+
+				default:
+
+				break;
+			
+			}
+		}
 		
 	}
 	
@@ -291,11 +352,12 @@ public class TextAreaPanel extends JPanel{
 			int endIndex=  Utilities.getWordEnd(textArea,offset);
 			
 			String word = d.getText(startIndex,endIndex);
-
-			if(keywords.contains(word)){
+			
+			String style = getKeywordStyle(word);
+			if(style != null){
 				
 				d.remove(startIndex,endIndex-startIndex);
-				d.insertString(startIndex,word,styleContext.getStyle("keywords"));
+				d.insertString(startIndex,word,styleContext.getStyle(getKeywordStyle(word)));
 			}
 
 		    }
@@ -306,7 +368,7 @@ public class TextAreaPanel extends JPanel{
 		    int originalOff= offset;
 		    int originalLength = length;
 		    
-		    if(attributeSet.containsAttributes(styleContext.getStyle("keywords"))){
+		    if(attributeSet.getAttributeCount()>0){
 		    	attributeSet=normalAttributes;
 		    }
 		    	
@@ -351,7 +413,7 @@ public class TextAreaPanel extends JPanel{
 				}
 				String word = text.substring(0, i);
 				System.out.println("word: " + word);
-				if (keywords.contains(word)) {
+				if (getKeywordStyle(word)!=null) {
 					indexes.add(0);
 					indexes.add(i);
 				}
@@ -369,7 +431,7 @@ public class TextAreaPanel extends JPanel{
 				System.out.println(keywords);
 				System.out.println(word);
 
-				if (keywords.contains(word)) {
+				if (getKeywordStyle(word)!=null) {
 					System.out.println("keyword");
 					int start = m.start();
 					System.out.println("start: " + start);
@@ -386,8 +448,10 @@ public class TextAreaPanel extends JPanel{
 
 					int first = indexes.get(i);
 					int second = indexes.get(i+1);
+					
+					String temp = text.substring(first,second);
 
-						super.insertString(fb,offset+first,text.substring(first,second),keywordAttributes);
+					super.insertString(fb,offset+first,temp,styleContext.getStyle(getKeywordStyle(temp)));
 						
 						
 						
