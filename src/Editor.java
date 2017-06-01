@@ -37,6 +37,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.Style;
 
 public class Editor implements ActionListener {
 
@@ -51,17 +54,41 @@ public class Editor implements ActionListener {
 	String[] viewItems = {};
 	private HashMap<String,HashMap<String,HashSet<String>>> keywords = new HashMap<String,HashMap<String,HashSet<String>>>();
 	private String copiedText;
-	
+	private Color copiedColor;
+	private StyleContext styleContext = new StyleContext();
+
+
+	public Editor(){
+		
+		Style standard = styleContext.addStyle("standard", null);
+		StyleConstants.setFontFamily(standard, "Monospace");
+		Style keywords = styleContext.addStyle("keywords",standard);
+		StyleConstants.setBold(keywords, true);
+		Style access=styleContext.addStyle("access",keywords);
+		StyleConstants.setForeground(access, new Color(5,91,14));
+		Style modifiers=styleContext.addStyle("modifiers",keywords);
+		StyleConstants.setForeground(modifiers,new Color(5,91,14));
+		Style control=styleContext.addStyle("controlflow",keywords);
+		StyleConstants.setForeground(control,new Color(6,10,124));
+		Style datatypes=styleContext.addStyle("datatypes",keywords);
+		StyleConstants.setForeground(datatypes,new Color(58,2,66));
+		Style errors=styleContext.addStyle("errors",keywords);
+		StyleConstants.setForeground(errors,new Color(6,10,124));
+		Style other=styleContext.addStyle("other",keywords);
+		StyleConstants.setForeground(other,new Color(5,91,14));
+
+
+	}
 	public void runGraphics() throws IOException {
 
-		
+
 		parseKeywords(new File("keywords.txt"));
-		
+
 		System.out.println(keywords);
-		
+
 		frame = new JFrame("Text Editor");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
 		panel = new JTabbedPane();
 
 		frame.setContentPane(panel);
@@ -112,24 +139,24 @@ public class Editor implements ActionListener {
 		// frame.setSize(new Dimension(400,400));
 
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		
+
 		int width = (int)screenSize.getWidth();
-		
+
 		int height = (int)screenSize.getHeight();
-		
-		
+
+
 		//frame.setMinimumSize(new Dimension(300,600));
-		
+
 		frame.setPreferredSize(new Dimension((int)(height/1.25),(int)(height/1.25)));
-		
+
 		frame.pack();
-		
+
 		int x = width/2-frame.getWidth()/2;
 		int y = height/2-frame.getHeight()/2;
-		
+
 		frame.setLocation(x, y);
-		
-		
+
+
 
 		handleNew();
 
@@ -139,124 +166,126 @@ public class Editor implements ActionListener {
 		// a submenu
 
 	}
-	
+
 	public void parseKeywords(File f) throws IOException{
-		
+
 		BufferedReader reader = new BufferedReader(new FileReader(f));
-		
+
 		StringBuilder builder = new StringBuilder("");
 		String next;
-		
+
 		while((next = reader.readLine()) != null){
 			builder.append(next).append(System.lineSeparator());
 		}
-		
+
 		String text = builder.toString();
-		
+
 		Pattern p = Pattern.compile("(?<=\\[)\\w*(?=\\])");
-		
+
 		ArrayList<String> languages = new ArrayList<String>();
-		
+
 		Matcher m = p.matcher(text);
-		
+
 		while(m.find()){
 			System.out.println("found");
 			String nextl = m.group();
 			System.out.println(nextl);
 			languages.add(nextl);
 		}
-		
+
 		String[] sections = text.split("\\s*\\[\\w*\\]\\s*");
-		
+
 		System.out.println(Arrays.toString(sections));
-		
+
 		System.out.println("first element : " +sections[0]);
 
-		
-		p=Pattern.compile("(?<=--)[a-zA-Z]+");
+
+		p=Pattern.compile("--[a-zA-Z]+");
 
 		for(int i =0;i<languages.size();i++){
-			
-			String textTemp = sections[i+1].trim();			
-			String[] keywordSections = textTemp.split("--[a-zA-Z]+");
-			
-			m = p.matcher(textTemp);
-				
-			System.out.println(Arrays.toString(keywordSections));
-			
-			HashMap<String,HashSet<String>> tempMap = new HashMap<String,HashSet<String>>();
-			for(String section : keywordSections){
-				
-				String[] keywords = section.split("\\s+");
 
-				System.out.println(Arrays.toString(keywords));
-				
+			String textTemp = sections[i+1].trim();
+			String[] keywordSections = textTemp.split("--[a-zA-Z]+");
+
+			m = p.matcher(textTemp);
+
+			System.out.println("textTemp: " + textTemp);
+			System.out.println("-----");
+			System.out.println(Arrays.toString(keywordSections));
+
+			HashMap<String,HashSet<String>> tempMap = new HashMap<String,HashSet<String>>();
+			for(int j=1;j<keywordSections.length;j++){
+
+				String[] keywords = keywordSections[j].split("\\s+");
+
+				System.out.println("keywords: " + Arrays.toString(keywords));
+
 
 				HashSet<String> temp = new HashSet<String>();
 				for(String keyword: keywords){
-				
+
 					temp.add(keyword);
 				}
 				if(m.find()){
-					tempMap.put(m.group(),temp);
+					tempMap.put(m.group().substring(2),temp);
 				}
 				else{
 					throw new IOException("keywords.txt format is incorrect");
 				}
 			}
-			
+
 			this.keywords.put(languages.get(i), tempMap);
 		}
 	}
-	
+
 	public int getLinesTextPane(JTextPane pane){
-		
+
 		int lines = 1;
-		
+
 		Pattern p = Pattern.compile("\\\n");
-		
+
 		Matcher m = p.matcher(pane.getText());
-	
+
 		while(m.find()){
 			lines++;
 		}
-		
+
 		return lines;
 	}
-	
-	
-		
-		
-	
+
+
+
+
+
 	public void setLineListener(TextAreaPanel p, LineNumberList lines){
-		
+
 		JTextPane area = p.getTextArea();
-		
+
 		area.getDocument().addDocumentListener(new DocumentListener() {
-			
+
 			 public void insertUpdate(DocumentEvent e) {
-			        
+
 				 	changeLines();
-				 	
+
 			    }
 			    public void removeUpdate(DocumentEvent e) {
-			        
+
 			    	changeLines();
-			    		
+
 			    }
 			    public void changedUpdate(DocumentEvent e) {
-			    
+
 			    	changeLines();
-			    	
+
 			    }
-			    
-			  
+
+
 			 public void changeLines(){
-				 
+
 				 lines.drawLineNumbers(getLinesTextPane(area));
 			 }
-			    
-			    
+
+
 		});
 	}
 
@@ -291,7 +320,7 @@ public class Editor implements ActionListener {
 			break;
 		case "Paste":
 
-			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P,ActionEvent.CTRL_MASK));
+			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V,ActionEvent.CTRL_MASK));
 			break;
 		case "Close":
 
@@ -299,11 +328,11 @@ public class Editor implements ActionListener {
 			break;
 
 		case "Exit":
-		
+
 			break;
-			
+
 		default:
-			
+
 			break;
 		}
 
@@ -318,9 +347,9 @@ public class Editor implements ActionListener {
 			switch (source.getText()) {
 
 			case "New":
-				
+
 				handleNew();
-			
+
 				break;
 			case "Open":
 
@@ -365,40 +394,40 @@ public class Editor implements ActionListener {
 
 	public void handleNew() {
 
-		
+
 		JPanel pane = new JPanel(new BorderLayout());
-		
+
 		JPanel temp = new JPanel();
-		
+
 		temp.setPreferredSize(new Dimension(50,0));
-		
+
 		//System.out.println(temp.getBackground());
-		
+
 		LineNumberList lineNumbers = new LineNumberList();
-		
-		
+
+
 		lineNumbers.setMargin(new Insets(-2,0,0,0));
-		
-				
+
+
 		temp.add(lineNumbers);
-		
+
 		pane.add(temp,BorderLayout.WEST);
-		
-		TextAreaPanel textArea = new TextAreaPanel();
-		
+
+		TextAreaPanel textArea = new TextAreaPanel(styleContext);
+
 		textArea.setIsNew(true);
-		
+
 		setLineListener(textArea,lineNumbers);
-		
+
 		pane.add(textArea,BorderLayout.CENTER);
 
 		Scroller tab = new Scroller(pane);
-		
+
 
 		tab.getVerticalScrollBar().setUnitIncrement(25);
 
 		panel.addTab("new " + (panel.getTabCount() + 1) + ".txt", tab);
-		
+
 		textArea.setFile(new File("new " + (panel.getTabCount() + 1) + ".txt"));
 
 		panel.setSelectedIndex(panel.getTabCount() - 1);
@@ -441,7 +470,7 @@ public class Editor implements ActionListener {
 			int selected = panel.getSelectedIndex();
 
 			if (currentTab.getIsNew()) {
-				
+
 				JFileChooser fileChooser = new JFileChooser();
 
 				int returned = fileChooser.showSaveDialog(frame);
@@ -449,9 +478,9 @@ public class Editor implements ActionListener {
 				if (returned == JFileChooser.APPROVE_OPTION) {
 
 					File file = fileChooser.getSelectedFile();
-					
+
 					//String fileExtension = file.getName().split("\\.")
-					
+
 					if (file.exists()) {
 
 						returned = JOptionPane.showConfirmDialog(frame,
@@ -459,18 +488,18 @@ public class Editor implements ActionListener {
 								JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 
 						if (returned == JOptionPane.YES_OPTION) {
-							
+
 							String fileName = file.getName();
-							
+
 							panel.setTitleAt(selected, fileName);
-							
+
 							if(fileName.contains(".")){
 								String extension = fileName.split("\\.")[1];
 								if(keywords.keySet().contains(extension)){
 									currentTab.setKeywords(keywords.get(extension));
 								}
-							
-							
+
+
 								try{
 									currentTab.updateKeywords();
 								}
@@ -478,10 +507,10 @@ public class Editor implements ActionListener {
 									e.printStackTrace();
 								}
 							}
-							
+
 							try {
-								
-								
+
+
 								FileWriter writer = new FileWriter(file);
 
 								writer.write(currentTab.getText());
@@ -502,18 +531,18 @@ public class Editor implements ActionListener {
 					}
 
 					else {
-						
+
 						String fileName = file.getName();
-						
+
 						panel.setTitleAt(selected, fileName);
-						
+
 						if(fileName.contains(".")){
 							String extension = fileName.split("\\.")[1];
 							if(keywords.keySet().contains(extension)){
 								currentTab.setKeywords(keywords.get(extension));
 							}
-						
-						
+
+
 							try{
 								currentTab.updateKeywords();
 							}
@@ -521,7 +550,7 @@ public class Editor implements ActionListener {
 								e.printStackTrace();
 							}
 						}
-						
+
 						try {
 							FileWriter writer = new FileWriter(file);
 
@@ -538,7 +567,7 @@ public class Editor implements ActionListener {
 					}
 
 				}
-				
+
 				currentTab.setIsNew(false);
 			}
 
@@ -610,26 +639,26 @@ public class Editor implements ActionListener {
 			if (returned == JFileChooser.APPROVE_OPTION) {
 
 				File file = fileChooser.getSelectedFile();
-				
-				
+
+
 				if (file.exists()) {
 
 					returned = JOptionPane.showConfirmDialog(frame, "Do you wish to overwrite file " + file.getName(),
 							"Overwrite File", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 
 					if (returned == JOptionPane.YES_OPTION) {
-						
+
 						String fileName = file.getName();
-						
+
 						panel.setTitleAt(selected, fileName);
-						
+
 						if(fileName.contains(".")){
 							String extension = fileName.split("\\.")[1];
 							if(keywords.keySet().contains(extension)){
 								currentTab.setKeywords(keywords.get(extension));
 							}
-						
-						
+
+
 							try{
 								currentTab.updateKeywords();
 							}
@@ -637,10 +666,10 @@ public class Editor implements ActionListener {
 								e.printStackTrace();
 							}
 						}
-						
+
 						try {
-							
-							
+
+
 							FileWriter writer = new FileWriter(file);
 
 							writer.write(currentTab.getText());
@@ -661,18 +690,18 @@ public class Editor implements ActionListener {
 				}
 
 				else {
-					
+
 					String fileName = file.getName();
-					
+
 					panel.setTitleAt(selected, fileName);
-					
+
 					if(fileName.contains(".")){
 						String extension = fileName.split("\\.")[1];
 						if(keywords.keySet().contains(extension)){
 							currentTab.setKeywords(keywords.get(extension));
 						}
-					
-					
+
+
 						try{
 							currentTab.updateKeywords();
 						}
@@ -680,10 +709,10 @@ public class Editor implements ActionListener {
 							e.printStackTrace();
 						}
 					}
-				
+
 					try {
 
-						
+
 						FileWriter writer = new FileWriter(file);
 
 						writer.write(currentTab.getText());
@@ -693,7 +722,7 @@ public class Editor implements ActionListener {
 						savedFiles.set(selected, true);
 
 						Files.deleteIfExists(Paths.get(currentTab.getFilePath()));
-						
+
 						setSavedListener(currentTab, selected);
 					} catch (IOException err) {
 						JOptionPane.showMessageDialog(frame, "File could not be saved");
@@ -753,8 +782,11 @@ public class Editor implements ActionListener {
 
 		TextAreaPanel currentTab = ((Scroller) panel.getSelectedComponent()).getTextArea();
 
-		copiedText = currentTab.getTextArea().getSelectedText();
-
+		JTextPane textArea = currentTab.getTextArea();
+		
+		copiedText = textArea.getSelectedText();
+		
+		copiedColor = textArea.getSelectedTextColor();
 	}
 
 	public void handleCut() {
@@ -782,7 +814,9 @@ public class Editor implements ActionListener {
 
 		if (selecStart == selecEnd) {
 			try{
-				textArea.getStyledDocument().insertString(selecStart, copiedText, null);
+				Document d = textArea.getDocument();
+				d.insertString(selecStart, copiedText, null);
+				//textArea.setCaretPosition(selecStart+copiedText.length());
 			}
 			catch(BadLocationException e){
 				e.printStackTrace();
@@ -791,41 +825,43 @@ public class Editor implements ActionListener {
 
 		else {
 			textArea.replaceSelection(copiedText);
+			System.out.println("setting caret position");
+			textArea.setCaretPosition(selecStart+copiedText.length());
 		}
 	}
 
 	public void openFile(File file) {
 
 		JPanel pane = new JPanel(new BorderLayout());
-		
+
 		JPanel temp = new JPanel();
-		
+
 		temp.setPreferredSize(new Dimension(50,0));
-		
+
 		//System.out.println(temp.getBackground());
-		
+
 		LineNumberList lineNumbers = new LineNumberList();
-		
-		
+
+
 		lineNumbers.setMargin(new Insets(-2,0,0,0));
-		
-				
+
+
 		temp.add(lineNumbers);
-		
+
 		pane.add(temp,BorderLayout.WEST);
-		
-		TextAreaPanel textArea = new TextAreaPanel();
-		
-		
+
+		TextAreaPanel textArea = new TextAreaPanel(styleContext);
+
+
 		String fileName = file.getName();
-		
-		
-		
+
+
+
 		System.out.println(fileName);
 		textArea.setFile(file);
-		
+
 		setLineListener(textArea,lineNumbers);
-		
+
 		pane.add(textArea,BorderLayout.CENTER);
 
 		Scroller tab = new Scroller(pane);
@@ -858,22 +894,22 @@ public class Editor implements ActionListener {
 			}
 
 			savedFiles.add(true);
-			
+
 			//System.out.println(input.toString());
-			
+
 			textArea.setText(input.toString());
-			
-			
+
+
 			if(fileName.contains(".")){
-				
+
 				String extension = fileName.split("\\.")[1];
 				System.out.println("extension: " + extension);
-				
+
 				if(keywords.keySet().contains(extension)){
 					textArea.setKeywords(keywords.get(extension));
 				}
-			
-			
+
+
 				try{
 					System.out.println("updating keywords");
 					textArea.updateKeywords();
@@ -883,10 +919,10 @@ public class Editor implements ActionListener {
 					e.printStackTrace();
 				}
 			}
-			
+
 			setSavedListener(textArea, panel.getTabCount() - 1);
-			
-			
+
+
 			panel.setSelectedIndex(panel.getTabCount() - 1);
 
 			JOptionPane.showMessageDialog(frame, "You chose file " + textArea.getFileName());

@@ -14,6 +14,7 @@ public class GraphicsRunner {
 					editor.runGraphics();
 				}
 				catch(IOException e){
+					e.printStackTrace();
 					JOptionPane.showMessageDialog(editor.frame, "An error occurred");
 				}
 			}

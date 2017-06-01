@@ -10,6 +10,4 @@ boolean byte char double float int long short
 --errors
 assert catch finally throw throws try
 --other
-super this void
-[py]
-fdsfdsf fdsf sd fds
+super this void import
