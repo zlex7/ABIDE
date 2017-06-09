@@ -1,15 +1,16 @@
 import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.Font;
 
 import javax.swing.JTextArea;
 
 public class LineNumberList extends JTextArea{
 
-	private JTextArea area;
-	public LineNumberList() {
+	public LineNumberList(Font font) {
 		
 		
 		//setPreferredSize(new Dimension(50,0));
+		
+		setFont(font);
 		
 		setBackground(new Color(238,238,238));
 		

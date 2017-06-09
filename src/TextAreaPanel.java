@@ -14,6 +14,7 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleContext;
@@ -33,15 +34,18 @@ public class TextAreaPanel extends JPanel {
 	public TextAreaPanel(StyleContext styleContext) {
 
 		setLayout(new BorderLayout());
+		
+		Document d = textArea.getDocument();
+		
 		add(textArea);
-
+		
 		this.styleContext = styleContext;
 
 		Action beepAction = textArea.getActionMap().get(DefaultEditorKit.beepAction);
 
 		beepAction.setEnabled(false);
 
-		textArea.setCharacterAttributes(styleContext.getStyle("standard"), true);
+		textArea.setParagraphAttributes(styleContext.getStyle("standard"), true);
 
 		normalAttributes = new SimpleAttributeSet();
 
@@ -115,6 +119,11 @@ public class TextAreaPanel extends JPanel {
 
 		this.keywords = keywords;
 
+		try {
+			updateKeywords();
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void setIsNew(boolean b) {
@@ -155,7 +164,7 @@ public class TextAreaPanel extends JPanel {
 			int i = 0;
 			if (Character.isAlphabetic(text.charAt(i))) {
 				i++;
-				while (Character.isAlphabetic(text.charAt(i))) {
+				while (i < text.length() && Character.isAlphabetic(text.charAt(i))) {
 					i++;
 				}
 				String word = text.substring(0, i);
@@ -187,6 +196,26 @@ public class TextAreaPanel extends JPanel {
 					d.insertString(start, word, styleContext.getStyle(style));
 				}
 
+			}
+
+			if (i < text.length() - 1) {
+				i = text.length() - 1;
+				if (Character.isAlphabetic(text.charAt(i))) {
+					i--;
+					while (Character.isAlphabetic(text.charAt(i))) {
+						i--;
+					}
+					i++;
+					String word = text.substring(i, text.length());
+					System.out.println("Word at end of string: " + word);
+					String style = getKeywordStyle(word);
+					if (style != null) {
+
+						d.remove(i, word.length());
+						d.insertString(i, word, styleContext.getStyle(style));
+					}
+
+				}
 			}
 
 			textArea.setStyledDocument(d);
@@ -360,64 +389,81 @@ public class TextAreaPanel extends JPanel {
 				}
 
 				Pattern p = Pattern.compile("^[a-zA-Z]");
-
-				String before = d.getText(offset - 1, 1);
-				String after = d.getText(offset + length, 1);
-				System.out.println("before: " + before);
-				System.out.println("after: " + after);
 				int tempOffset = offset;
-				
+
+				if (tempOffset > 0) {
+					String before = d.getText(offset - 1, 1);
+					System.out.println("before: " + before);
+
 					if (Character.isAlphabetic(before.charAt(0))) {
 						text = before + text;
 						offset--;
 						tempOffset--;
 						length++;
 					}
+				}
+				System.out.println("hello");
+				
+				if(offset+length<d.getLength()-1){
+					String after = d.getText(offset + length, 1);
+					System.out.println("after: " + after);
 					if (Character.isAlphabetic(after.charAt(0))) {
 						text += after;
 						length++;
 					}
+				}
+				System.out.println("hello2");
 
-				if (Character.isAlphabetic(text.charAt(0))) {
-						
-					tempOffset--;
+					if (tempOffset > 0) {
+						if (Character.isAlphabetic(text.charAt(0))) {
+							
+							tempOffset--;
+							
+							StringBuilder sb = new StringBuilder(d.getText(tempOffset, 1));
+							
+							tempOffset -= 1;
+							
+							while (tempOffset>=0 && Character.isAlphabetic(sb.charAt(0))) {
+
+
+								sb.insert(0, d.getText(tempOffset, 1));
+								
+								tempOffset -= 1;
+							}
+
+							offset -= sb.length();
+
+							length += sb.length();
+
+							text = sb.toString() + text;
+
+						}
+					}
+				
+					System.out.println("hello3");
 					
-					StringBuilder sb = new StringBuilder(d.getText(tempOffset, 1));
+					if (offset + length < d.getLength() - 1) {
+						if (Character.isAlphabetic(text.charAt(text.length() - 1))) {
 
+							StringBuilder sb = new StringBuilder(d.getText(offset + length, 1));
+							while (offset + length <= d.getLength() - 1
+									&& Character.isAlphabetic(sb.charAt(sb.length() - 1))) {
 
-					while (Character.isAlphabetic(sb.charAt(0))) {
+								length += 1;
+								sb.append(d.getText(offset + length, 1));
 
-						tempOffset -= 1;
+							}
 
-						sb.insert(0, d.getText(tempOffset, 1));
+							sb.deleteCharAt(sb.length() - 1);
+
+							// sb.deleteCharAt(sb.lastIndexOf("\n"));
+							System.out.println("sb: " + sb.toString());
+							text += sb.toString();
+						}
 					}
 
-					sb.deleteCharAt(0);
-					offset -= sb.length();
-
-					length += sb.length();
-
-					text = sb.toString() + text;
-
-				}
-
-				if (Character.isAlphabetic(text.charAt(text.length() - 1))) {
-
-					StringBuilder sb = new StringBuilder(d.getText(offset + length, 1));
-					while (offset + length <= d.getLength() - 1 && Character.isAlphabetic(sb.charAt(sb.length() - 1))) {
-
-						length += 1;
-						sb.append(d.getText(offset + length, 1));
-
-					}
-
-					sb.deleteCharAt(sb.length() - 1);
-
-					// sb.deleteCharAt(sb.lastIndexOf("\n"));
-					System.out.println("sb: " + sb.toString());
-					text += sb.toString();
-				}
-
+				
+					System.out.println("text");
 				System.out.println("text: " + text);
 
 				super.remove(fb, offset, length);
@@ -425,9 +471,9 @@ public class TextAreaPanel extends JPanel {
 				ArrayList<Integer> indexes = new ArrayList<Integer>();
 
 				if (!text.isEmpty()) {
-					
+
 					int i = 0;
-					
+
 					if (Character.isAlphabetic(text.charAt(i))) {
 						i++;
 						while (i < text.length() && Character.isAlphabetic(text.charAt(i))) {
@@ -440,10 +486,7 @@ public class TextAreaPanel extends JPanel {
 							indexes.add(i);
 						}
 					}
-					
-	
-					
-					
+
 					p = Pattern.compile("(?<=\\W)[a-z]+(?=\\W)");
 					Matcher m = p.matcher(text);
 
@@ -467,24 +510,24 @@ public class TextAreaPanel extends JPanel {
 						}
 
 					}
-					
-					int j = text.length()-1;
-					
-					if(i<j && Character.isAlphabetic(text.charAt(j))){
+
+					int j = text.length() - 1;
+
+					if (i < j && Character.isAlphabetic(text.charAt(j))) {
 						j--;
-						
-						while(j>0 && Character.isAlphabetic(text.charAt(j))){
+
+						while (j > 0 && Character.isAlphabetic(text.charAt(j))) {
 							j--;
 						}
-						
-						String word = text.substring(j+1);
+
+						String word = text.substring(j + 1);
 						System.out.println("last word: " + word);
-						if(getKeywordStyle(word) != null){
-							indexes.add(j+1);
+						if (getKeywordStyle(word) != null) {
+							indexes.add(j + 1);
 							indexes.add(text.length());
 						}
 					}
-					
+
 					if (!indexes.isEmpty()) {
 						super.insertString(fb, offset, text.substring(0, indexes.get(0)), attributeSet);
 						for (i = 0; i < indexes.size(); i += 2) {
@@ -520,6 +563,7 @@ public class TextAreaPanel extends JPanel {
 			}
 
 		});
+
 	}
 
 	public void paintComponent(Graphics g) {

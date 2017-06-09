@@ -1,8 +1,8 @@
-[java]
+[java .java]
 --access
 private protected public
 --modifiers
-abstract class extends final implements interface native new static strictfp synchronized transient volatile
+abstract class extends final implements interface native new static void strictfp synchronized transient volatile
 --controlflow
 break case continue default do else for if instanceof return switch while
 --datatypes
@@ -10,4 +10,18 @@ boolean byte char double float int long short
 --errors
 assert catch finally throw throws try
 --other
-super this void import
+super this import
+[python .py]
+--other
+and       del       from      not       while    
+as        elif      global    or        with     
+assert    else      if        pass      yield    
+break     except    import    print              
+class     exec      in        raise              
+continue  finally   is        return             
+def       for       lambda    try
+[c++ .cpp]
+--access
+private protected public
+--datatypes
+boolean byte char double float int long short signed unsigned const volatile restrict

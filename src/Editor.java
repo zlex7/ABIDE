@@ -1,13 +1,14 @@
 import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.Color;
-
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,9 +38,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.StyleContext;
-import javax.swing.text.StyleConstants;
 import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.TabSet;
+import javax.swing.text.TabStop;
 
 public class Editor implements ActionListener {
 
@@ -52,16 +55,84 @@ public class Editor implements ActionListener {
 	String[] fileItems = { "New", "Open", "Save", "Save as", "Close", "Exit" };
 	String[] editItems = { "Cut", "Copy", "Paste" };
 	String[] viewItems = {};
+	String[] runItems = {"Run"};
+	String[] runasItems = {"Java"};
+	private HashMap<String,String> extToLang = new HashMap<String,String>();
+	private HashSet<String> heldLanguages = new HashSet<String>();
+	private LanguageListener languageListener;
 	private HashMap<String,HashMap<String,HashSet<String>>> keywords = new HashMap<String,HashMap<String,HashSet<String>>>();
 	private String copiedText;
 	private Color copiedColor;
+	private String fontName = "monospaced";
+	private int fontSize = 14;
+	private int tabSize = 5;
+	Font font = new Font(fontName,Font.PLAIN,fontSize);
 	private StyleContext styleContext = new StyleContext();
-
+	
+	
+	
+	class LanguageListener implements ActionListener{
+		
+		public void actionPerformed(ActionEvent e){
+			System.out.println("language listener running");
+			JMenuItem language = (JMenuItem)e.getSource();
+			
+			Scroller scroller = ((Scroller)panel.getSelectedComponent());
+			
+			System.out.println(scroller);
+			
+			System.out.println(language.getText());
+			
+			if(scroller != null){
+				TextAreaPanel temp = scroller.getTextArea();
+				temp.setKeywords(keywords.get(language.getText()));
+				temp.setKeywordListener();
+			}
+		}
+	}
+	
+	class runasListener implements ActionListener{
+		
+		public void actionPerformed(ActionEvent e){
+			
+			System.out.println("Run as listener running");
+			
+			JMenuItem runasLanguage = (JMenuItem)e.getSource();
+			
+			try{
+				compileAndRun(runasLanguage.getText());
+			}
+			catch(Exception err){
+				err.printStackTrace();
+			}
+		}
+		
+		public void compileAndRun(String lang) throws IOException, InterruptedException{
+			
+			switch(lang){
+			
+			case "Java":
+				
+				Runtime runtime = Runtime.getRuntime();
+				
+				Process compile = runtime.exec("javac");
+				
+				compile.waitFor();
+				
+				Process run = runtime.exec("java");
+			}
+		}
+		
+	}
 
 	public Editor(){
 		
+		TabSet tabSet = getTabSet();
+		
 		Style standard = styleContext.addStyle("standard", null);
-		StyleConstants.setFontFamily(standard, "Monospace");
+		StyleConstants.setFontFamily(standard, fontName);
+		StyleConstants.setFontSize(standard,fontSize);
+		StyleConstants.setTabSet(standard, tabSet);
 		Style keywords = styleContext.addStyle("keywords",standard);
 		StyleConstants.setBold(keywords, true);
 		Style access=styleContext.addStyle("access",keywords);
@@ -76,6 +147,8 @@ public class Editor implements ActionListener {
 		StyleConstants.setForeground(errors,new Color(6,10,124));
 		Style other=styleContext.addStyle("other",keywords);
 		StyleConstants.setForeground(other,new Color(5,91,14));
+		
+		languageListener = new LanguageListener();
 
 
 	}
@@ -127,12 +200,52 @@ public class Editor implements ActionListener {
 			viewMenu.add(item);
 
 		}
+		
+		JMenu languageMenu = new EditorMenu("Language");
+		
+		for(String lang : keywords.keySet()){
+			
+			JMenuItem item = new JMenuItem(lang);
+			setKeyMnemonic(item);
+			item.addActionListener(languageListener);
+			languageMenu.add(item);
+			
+		}
+		
+		JMenu runMenu = new EditorMenu("Run");
+		
+		for(String s : runItems){
+			
+			JMenuItem item = new JMenuItem(s);
+			setKeyMnemonic(item);
+			item.addActionListener(this);
+			runMenu.add(item);
+			
+		}
+		
+		JMenu runasMenu = new EditorMenu("Run As");
+		
+		for(String s : runasItems){
+			
+			JMenuItem item = new JMenuItem(s);
+			setKeyMnemonic(item);
+			item.addActionListener(runasListener);
+			runasMenu.add(item);
+			
+		}
+		
+		runMenu.add(runasMenu);
+		
 
 		// menu = new JMenu("Another Menu");
 
 		menuBar.add(fileMenu);
 
 		menuBar.add(editMenu);
+		
+		menuBar.add(languageMenu);
+		
+		menuBar.add(runMenu);
 
 		frame.setJMenuBar(menuBar);
 
@@ -166,6 +279,30 @@ public class Editor implements ActionListener {
 		// a submenu
 
 	}
+	
+	public TabSet getTabSet(){
+		
+		Canvas c = new Canvas();
+		
+		FontMetrics fm = c.getFontMetrics(font);
+		
+		int charWidth = fm.charWidth(' ');
+		
+		int tabWidth = charWidth*tabSize;
+		
+		TabStop[] tabStops = new TabStop[100];
+		
+		for(int i=0;i<tabStops.length;i++){
+			
+			tabStops[i] = new TabStop((i+1)*tabWidth);
+		
+		}
+		
+		TabSet tabSet = new TabSet(tabStops);
+		
+		return tabSet;
+		
+	}
 
 	public void parseKeywords(File f) throws IOException{
 
@@ -180,7 +317,7 @@ public class Editor implements ActionListener {
 
 		String text = builder.toString();
 
-		Pattern p = Pattern.compile("(?<=\\[)\\w*(?=\\])");
+		Pattern p = Pattern.compile("(?<=\\[)\\S+ \\.\\S+(?=\\])");
 
 		ArrayList<String> languages = new ArrayList<String>();
 
@@ -188,12 +325,14 @@ public class Editor implements ActionListener {
 
 		while(m.find()){
 			System.out.println("found");
-			String nextl = m.group();
-			System.out.println(nextl);
-			languages.add(nextl);
+			String[] language = m.group().split(" ");
+			System.out.println(language);
+			languages.add(language[0]);
+			extToLang.put(language[1].substring(1), language[0]);
+			heldLanguages.add(language[1].substring(1));
 		}
 
-		String[] sections = text.split("\\s*\\[\\w*\\]\\s*");
+		String[] sections = text.split("\\s*\\[\\S+ \\.\\S+\\]\\s*");
 
 		System.out.println(Arrays.toString(sections));
 
@@ -292,6 +431,11 @@ public class Editor implements ActionListener {
 	public void setKeyMnemonic(JMenuItem item) {
 
 		switch (item.getText()) {
+		
+		case "Run":
+			
+			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,ActionEvent.CTRL_MASK));
+			break;
 		case "New":
 
 			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N,ActionEvent.CTRL_MASK));
@@ -345,7 +489,12 @@ public class Editor implements ActionListener {
 			JMenuItem source = (JMenuItem) e.getSource();
 
 			switch (source.getText()) {
-
+			
+			case "Run":
+				
+				handleRun();
+				
+				break;
 			case "New":
 
 				handleNew();
@@ -403,7 +552,7 @@ public class Editor implements ActionListener {
 
 		//System.out.println(temp.getBackground());
 
-		LineNumberList lineNumbers = new LineNumberList();
+		LineNumberList lineNumbers = new LineNumberList(font);
 
 
 		lineNumbers.setMargin(new Insets(-2,0,0,0));
@@ -495,8 +644,8 @@ public class Editor implements ActionListener {
 
 							if(fileName.contains(".")){
 								String extension = fileName.split("\\.")[1];
-								if(keywords.keySet().contains(extension)){
-									currentTab.setKeywords(keywords.get(extension));
+								if(heldLanguages.contains(extension)){
+									currentTab.setKeywords(keywords.get(extToLang.get(extension)));
 								}
 
 
@@ -538,8 +687,8 @@ public class Editor implements ActionListener {
 
 						if(fileName.contains(".")){
 							String extension = fileName.split("\\.")[1];
-							if(keywords.keySet().contains(extension)){
-								currentTab.setKeywords(keywords.get(extension));
+							if(heldLanguages.contains(extension)){
+								currentTab.setKeywords(keywords.get(extToLang.get(extension)));
 							}
 
 
@@ -654,8 +803,8 @@ public class Editor implements ActionListener {
 
 						if(fileName.contains(".")){
 							String extension = fileName.split("\\.")[1];
-							if(keywords.keySet().contains(extension)){
-								currentTab.setKeywords(keywords.get(extension));
+							if(heldLanguages.contains(extension)){
+								currentTab.setKeywords(keywords.get(extToLang.get(extension)));
 							}
 
 
@@ -697,8 +846,8 @@ public class Editor implements ActionListener {
 
 					if(fileName.contains(".")){
 						String extension = fileName.split("\\.")[1];
-						if(keywords.keySet().contains(extension)){
-							currentTab.setKeywords(keywords.get(extension));
+						if(heldLanguages.contains(extension)){
+							currentTab.setKeywords(keywords.get(extToLang.get(extension)));
 						}
 
 
@@ -840,7 +989,7 @@ public class Editor implements ActionListener {
 
 		//System.out.println(temp.getBackground());
 
-		LineNumberList lineNumbers = new LineNumberList();
+		LineNumberList lineNumbers = new LineNumberList(font);
 
 
 		lineNumbers.setMargin(new Insets(-2,0,0,0));
@@ -905,8 +1054,8 @@ public class Editor implements ActionListener {
 				String extension = fileName.split("\\.")[1];
 				System.out.println("extension: " + extension);
 
-				if(keywords.keySet().contains(extension)){
-					textArea.setKeywords(keywords.get(extension));
+				if(heldLanguages.contains(extension)){
+					textArea.setKeywords(keywords.get(extToLang.get(extension)));
 				}
 
 
@@ -934,6 +1083,12 @@ public class Editor implements ActionListener {
 			JOptionPane.showMessageDialog(frame, "File " + textArea.getFileName() + " does not exist.");
 
 		}
+	}
+	
+	public void handleRun(){
+		
+		
+		
 	}
 
 }
