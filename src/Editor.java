@@ -68,21 +68,21 @@ public class Editor implements ActionListener {
 	private int tabSize = 5;
 	Font font = new Font(fontName,Font.PLAIN,fontSize);
 	private StyleContext styleContext = new StyleContext();
-	
-	
-	
+
+
+
 	class LanguageListener implements ActionListener{
-		
+
 		public void actionPerformed(ActionEvent e){
 			System.out.println("language listener running");
 			JMenuItem language = (JMenuItem)e.getSource();
-			
+
 			Scroller scroller = ((Scroller)panel.getSelectedComponent());
-			
+
 			System.out.println(scroller);
-			
+
 			System.out.println(language.getText());
-			
+
 			if(scroller != null){
 				TextAreaPanel temp = scroller.getTextArea();
 				temp.setKeywords(keywords.get(language.getText()));
@@ -90,15 +90,15 @@ public class Editor implements ActionListener {
 			}
 		}
 	}
-	
+
 	class runasListener implements ActionListener{
-		
+
 		public void actionPerformed(ActionEvent e){
-			
+
 			System.out.println("Run as listener running");
-			
+
 			JMenuItem runasLanguage = (JMenuItem)e.getSource();
-			
+
 			try{
 				compileAndRun(runasLanguage.getText());
 			}
@@ -106,29 +106,29 @@ public class Editor implements ActionListener {
 				err.printStackTrace();
 			}
 		}
-		
+
 		public void compileAndRun(String lang) throws IOException, InterruptedException{
-			
+
 			switch(lang){
-			
+
 			case "Java":
-				
+
 				Runtime runtime = Runtime.getRuntime();
-				
+
 				Process compile = runtime.exec("javac");
-				
+
 				compile.waitFor();
-				
+
 				Process run = runtime.exec("java");
 			}
 		}
-		
+
 	}
 
 	public Editor(){
-		
+
 		TabSet tabSet = getTabSet();
-		
+
 		Style standard = styleContext.addStyle("standard", null);
 		StyleConstants.setFontFamily(standard, fontName);
 		StyleConstants.setFontSize(standard,fontSize);
@@ -147,7 +147,7 @@ public class Editor implements ActionListener {
 		StyleConstants.setForeground(errors,new Color(6,10,124));
 		Style other=styleContext.addStyle("other",keywords);
 		StyleConstants.setForeground(other,new Color(5,91,14));
-		
+
 		languageListener = new LanguageListener();
 
 
@@ -200,51 +200,51 @@ public class Editor implements ActionListener {
 			viewMenu.add(item);
 
 		}
-		
+
 		JMenu languageMenu = new EditorMenu("Language");
-		
+
 		for(String lang : keywords.keySet()){
-			
+
 			JMenuItem item = new JMenuItem(lang);
 			setKeyMnemonic(item);
 			item.addActionListener(languageListener);
 			languageMenu.add(item);
-			
+
 		}
-		
+
 		JMenu runMenu = new EditorMenu("Run");
-		
+
 		for(String s : runItems){
-			
+
 			JMenuItem item = new JMenuItem(s);
 			setKeyMnemonic(item);
 			item.addActionListener(this);
 			runMenu.add(item);
-			
+
 		}
-		
+
 		JMenu runasMenu = new EditorMenu("Run As");
-		
+
 		for(String s : runasItems){
-			
+
 			JMenuItem item = new JMenuItem(s);
 			setKeyMnemonic(item);
-			item.addActionListener(runasListener);
+			//item.addActionListener(runasListener);
 			runasMenu.add(item);
-			
+
 		}
-		
+
 		runMenu.add(runasMenu);
-		
+
 
 		// menu = new JMenu("Another Menu");
 
 		menuBar.add(fileMenu);
 
 		menuBar.add(editMenu);
-		
+
 		menuBar.add(languageMenu);
-		
+
 		menuBar.add(runMenu);
 
 		frame.setJMenuBar(menuBar);
@@ -279,29 +279,29 @@ public class Editor implements ActionListener {
 		// a submenu
 
 	}
-	
+
 	public TabSet getTabSet(){
-		
+
 		Canvas c = new Canvas();
-		
+
 		FontMetrics fm = c.getFontMetrics(font);
-		
+
 		int charWidth = fm.charWidth(' ');
-		
+
 		int tabWidth = charWidth*tabSize;
-		
+
 		TabStop[] tabStops = new TabStop[100];
-		
+
 		for(int i=0;i<tabStops.length;i++){
-			
+
 			tabStops[i] = new TabStop((i+1)*tabWidth);
-		
+
 		}
-		
+
 		TabSet tabSet = new TabSet(tabStops);
-		
+
 		return tabSet;
-		
+
 	}
 
 	public void parseKeywords(File f) throws IOException{
@@ -431,9 +431,9 @@ public class Editor implements ActionListener {
 	public void setKeyMnemonic(JMenuItem item) {
 
 		switch (item.getText()) {
-		
+
 		case "Run":
-			
+
 			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,ActionEvent.CTRL_MASK));
 			break;
 		case "New":
@@ -489,11 +489,11 @@ public class Editor implements ActionListener {
 			JMenuItem source = (JMenuItem) e.getSource();
 
 			switch (source.getText()) {
-			
+
 			case "Run":
-				
+
 				handleRun();
-				
+
 				break;
 			case "New":
 
@@ -932,9 +932,9 @@ public class Editor implements ActionListener {
 		TextAreaPanel currentTab = ((Scroller) panel.getSelectedComponent()).getTextArea();
 
 		JTextPane textArea = currentTab.getTextArea();
-		
+
 		copiedText = textArea.getSelectedText();
-		
+
 		copiedColor = textArea.getSelectedTextColor();
 	}
 
@@ -1084,11 +1084,11 @@ public class Editor implements ActionListener {
 
 		}
 	}
-	
+
 	public void handleRun(){
-		
-		
-		
+
+
+
 	}
 
 }

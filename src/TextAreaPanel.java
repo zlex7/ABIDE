@@ -34,11 +34,11 @@ public class TextAreaPanel extends JPanel {
 	public TextAreaPanel(StyleContext styleContext) {
 
 		setLayout(new BorderLayout());
-		
+
 		Document d = textArea.getDocument();
-		
+
 		add(textArea);
-		
+
 		this.styleContext = styleContext;
 
 		Action beepAction = textArea.getActionMap().get(DefaultEditorKit.beepAction);
@@ -198,7 +198,7 @@ public class TextAreaPanel extends JPanel {
 
 			}
 
-			if (i < text.length() - 1) {
+			if (i < text.length()-1) {
 				i = text.length() - 1;
 				if (Character.isAlphabetic(text.charAt(i))) {
 					i--;
@@ -210,9 +210,13 @@ public class TextAreaPanel extends JPanel {
 					System.out.println("Word at end of string: " + word);
 					String style = getKeywordStyle(word);
 					if (style != null) {
-
 						d.remove(i, word.length());
 						d.insertString(i, word, styleContext.getStyle(style));
+					}
+
+					else{
+						d.remove(i,word.length());
+						d.insertString(i, word, styleContext.getStyle("standard"));
 					}
 
 				}
@@ -239,7 +243,7 @@ public class TextAreaPanel extends JPanel {
 					int i = 0;
 					if (Character.isAlphabetic(text.charAt(i))) {
 						i++;
-						while (Character.isAlphabetic(text.charAt(i))) {
+						while (i<text.length() && Character.isAlphabetic(text.charAt(i))) {
 							i++;
 						}
 						String word = text.substring(0, i);
@@ -282,8 +286,10 @@ public class TextAreaPanel extends JPanel {
 							String temp = text.substring(first, second);
 							super.insertString(fb, offset + first, temp, styleContext.getStyle(getKeywordStyle(temp)));
 
-							super.insertString(fb, offset + second, text.substring(second, indexes.get(i + 2)),
-									attributeSet);
+							if(i+2<indexes.size()){
+								super.insertString(fb, offset + second, text.substring(second, indexes.get(i + 2)),
+										attributeSet);
+								}
 
 						}
 
@@ -313,11 +319,15 @@ public class TextAreaPanel extends JPanel {
 				int endSecond = -1;
 
 				int temp = offset - 1;
-				if (Character.isAlphabetic(d.getText(temp, 1).charAt(0))) {
+				System.out.println("temp: " + temp);
+
+				if (temp>-1 && Character.isAlphabetic(d.getText(temp, 1).charAt(0))) {
 					startFirst = Utilities.getWordStart(textArea, temp);
 					endFirst = Utilities.getWordEnd(textArea, temp);
 				}
+
 				temp = offset;
+
 				if (offset < d.getLength() - 1) {
 					if (Character.isAlphabetic(d.getText(temp, 1).charAt(0))) {
 						startSecond = Utilities.getWordStart(textArea, temp);
@@ -326,17 +336,17 @@ public class TextAreaPanel extends JPanel {
 				}
 				/*
 				 * int tempOffset = offset-1;
-				 * 
+				 *
 				 * StringBuilder sb = new StringBuilder(d.getText(tempOffset,
 				 * 1));
-				 * 
+				 *
 				 * tempOffset--;
-				 * 
+				 *
 				 * while(Character.isAlphabetic(sb.charAt(0))){ sb.insert(0,
 				 * d.getText(tempOffset, 1)); tempOffset--; }
-				 * 
+				 *
 				 * tempOffset=offset;
-				 * 
+				 *
 				 * while(tempOffset<=d.getLength()-1 &&
 				 * Character.isAlphabetic(sb.charAt(sb.length()-1))){
 				 * sb.append(d.getText(tempOffset, 1)); }
@@ -403,7 +413,7 @@ public class TextAreaPanel extends JPanel {
 					}
 				}
 				System.out.println("hello");
-				
+
 				if(offset+length<d.getLength()-1){
 					String after = d.getText(offset + length, 1);
 					System.out.println("after: " + after);
@@ -416,18 +426,18 @@ public class TextAreaPanel extends JPanel {
 
 					if (tempOffset > 0) {
 						if (Character.isAlphabetic(text.charAt(0))) {
-							
+
 							tempOffset--;
-							
+
 							StringBuilder sb = new StringBuilder(d.getText(tempOffset, 1));
-							
+
 							tempOffset -= 1;
-							
+
 							while (tempOffset>=0 && Character.isAlphabetic(sb.charAt(0))) {
 
 
 								sb.insert(0, d.getText(tempOffset, 1));
-								
+
 								tempOffset -= 1;
 							}
 
@@ -439,9 +449,9 @@ public class TextAreaPanel extends JPanel {
 
 						}
 					}
-				
+
 					System.out.println("hello3");
-					
+
 					if (offset + length < d.getLength() - 1) {
 						if (Character.isAlphabetic(text.charAt(text.length() - 1))) {
 
@@ -462,7 +472,7 @@ public class TextAreaPanel extends JPanel {
 						}
 					}
 
-				
+
 					System.out.println("text");
 				System.out.println("text: " + text);
 
