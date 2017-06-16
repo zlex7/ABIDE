@@ -1,6 +1,6 @@
 import java.awt.Color;
 import java.awt.Font;
-
+import java.awt.ComponentOrientation;
 import javax.swing.JTextArea;
 
 public class LineNumberList extends JTextArea{
@@ -9,7 +9,9 @@ public class LineNumberList extends JTextArea{
 		
 		
 		//setPreferredSize(new Dimension(50,0));
-		
+
+		//setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+
 		setFont(font);
 		
 		setBackground(new Color(238,238,238));
@@ -32,6 +34,7 @@ public class LineNumberList extends JTextArea{
 		
 		for(int i=1; i<=lines;i++){
 			
+
 			lineNumbers.append(i).append("\n");
 			
 		}

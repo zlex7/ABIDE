@@ -64,7 +64,7 @@ public class Editor implements ActionListener {
 	private String copiedText;
 	private Color copiedColor;
 	private String fontName = "monospaced";
-	private int fontSize = 14;
+	private int fontSize = 16;
 	private int tabSize = 5;
 	Font font = new Font(fontName,Font.PLAIN,fontSize);
 	private StyleContext styleContext = new StyleContext();
@@ -133,6 +133,8 @@ public class Editor implements ActionListener {
 		StyleConstants.setFontFamily(standard, fontName);
 		StyleConstants.setFontSize(standard,fontSize);
 		StyleConstants.setTabSet(standard, tabSet);
+		//Style lineNumbers = styleContext.addStyle("lineNumbers",standard);
+		//StyleConstants.setAlignment(lineNumbers,StyleConstants.ALIGN_RIGHT);
 		Style keywords = styleContext.addStyle("keywords",standard);
 		StyleConstants.setBold(keywords, true);
 		Style access=styleContext.addStyle("access",keywords);
