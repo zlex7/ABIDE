@@ -21,12 +21,23 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.Utilities;
 
+//This is the main text area of the editor, where all of the programming happens
 public class TextAreaPanel extends JPanel {
 
+	//the underlying text component
 	JTextPane textArea = new JTextPane();
+
+	//the file that is represented by this TextAreaPanel instance
 	File file;
+
+	//whether the file was just created (specifically by handleNew())
 	boolean isNew = false;
+
+	//stores the keywords based on what is passed to it from the editor class
 	HashMap<String, HashSet<String>> keywords = new HashMap<String, HashSet<String>>();
+	
+	//the style of TextAreaPanel
+	//most of it is inherited from Editor, but there are some specifics to this class
 	StyleContext styleContext;
 	SimpleAttributeSet keywordAttributes;
 	SimpleAttributeSet normalAttributes;
@@ -115,6 +126,7 @@ public class TextAreaPanel extends JPanel {
 		return file.getAbsolutePath();
 	}
 
+	//sets the keywords with a new HashMap<>
 	public void setKeywords(HashMap<String, HashSet<String>> keywords) {
 
 		this.keywords = keywords;
@@ -126,6 +138,7 @@ public class TextAreaPanel extends JPanel {
 		}
 	}
 
+
 	public void setIsNew(boolean b) {
 
 		isNew = b;
@@ -136,6 +149,7 @@ public class TextAreaPanel extends JPanel {
 		return isNew;
 	}
 
+	//returns either the style associated with a word or null (not a keyword)
 	public String getKeywordStyle(String word) {
 
 		for (String key : this.keywords.keySet()) {
@@ -146,9 +160,12 @@ public class TextAreaPanel extends JPanel {
 
 		}
 
+		//if not a keyword
 		return null;
 	}
 
+	//recolors keywords
+	//call this after updating keywords
 	public void updateKeywords() throws BadLocationException {
 
 		StyledDocument d = textArea.getStyledDocument();
@@ -175,12 +192,13 @@ public class TextAreaPanel extends JPanel {
 					d.insertString(0, word, styleContext.getStyle(style));
 				}
 			}
-
+			//regex pattern to find words within the text
 			Pattern p = Pattern.compile("(?<=\\W)[a-z]+(?=\\W)");
 			m = p.matcher(text);
 
 			System.out.println("finding keywords: ");
 
+			//finding words and coloring them if they are keywords
 			while (m.find()) {
 
 				String word = m.group();
@@ -188,6 +206,7 @@ public class TextAreaPanel extends JPanel {
 				System.out.println(keywords);
 				System.out.println(word);
 
+				//returns the style associated with the keyword or null if the word is not a keyword
 				String style = getKeywordStyle(word);
 				if (style != null) {
 					int start = m.start();
@@ -198,6 +217,7 @@ public class TextAreaPanel extends JPanel {
 
 			}
 
+			//this is checking the end of the text for keywords, because the regex pattern will not find it if there isn't whitespace before and after a word
 			if (i < text.length()-1) {
 				i = text.length() - 1;
 				if (Character.isAlphabetic(text.charAt(i))) {
@@ -210,6 +230,7 @@ public class TextAreaPanel extends JPanel {
 					System.out.println("Word at end of string: " + word);
 					String style = getKeywordStyle(word);
 					if (style != null) {
+						//removes and then inserts the string with the correct style
 						d.remove(i, word.length());
 						d.insertString(i, word, styleContext.getStyle(style));
 					}
@@ -227,20 +248,27 @@ public class TextAreaPanel extends JPanel {
 
 	}
 
+	//sets the listener for updating keywords as the user types
 	public void setKeywordListener() {
 
 		AbstractDocument d = (AbstractDocument) textArea.getDocument();
 
+		//creates document filter to check keywords on every insertion of text
 		d.setDocumentFilter(new DocumentFilter() {
 
 			@Override
 			public void insertString(FilterBypass fb, int offset, String text, AttributeSet attributeSet)
 					throws BadLocationException {
+
+				//regex pattern to find words within inserted text
 				Pattern p = Pattern.compile("(?<=\\W)[a-z]+(?=\\W)");
+
+				//indexes of where keywords start and end
 				ArrayList<Integer> indexes = new ArrayList<Integer>();
 
 				if (!text.isEmpty()) {
 					int i = 0;
+					//checking the beginning of the text for keywords, because they're not matched by the regex expression
 					if (Character.isAlphabetic(text.charAt(i))) {
 						i++;
 						while (i<text.length() && Character.isAlphabetic(text.charAt(i))) {
@@ -260,6 +288,7 @@ public class TextAreaPanel extends JPanel {
 
 					System.out.println("finding keywords in insertString: ");
 
+					//actual finder of keywords within the text. Finds keywords and then stores the start and end indexes in the indexes ArrayList<>
 					while (m.find()) {
 
 						String word = m.group();
@@ -268,6 +297,7 @@ public class TextAreaPanel extends JPanel {
 						System.out.println(word);
 
 						String style = getKeywordStyle(word);
+						
 						if (style != null) {
 							int start = m.start();
 							System.out.println("start: " + start);

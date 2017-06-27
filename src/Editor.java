@@ -48,33 +48,58 @@ public class Editor implements ActionListener {
 
 	// TextAreaPanel currentTab;
 
+	//determines which tabs have safed files
+	//TODO: change this method of checking whether files are saved. It's prone to mistakes
 	ArrayList<Boolean> savedFiles = new ArrayList<Boolean>();
+
+	//overall frame
 	JFrame frame;
+
+	//the outer pane containing tabs with text in them
 	JTabbedPane panel;
+
+	//This isn't used anywhere
 	File currentFile;
+
+	//These are menu items
 	String[] fileItems = { "New", "Open", "Save", "Save as", "Close", "Exit" };
-	String[] editItems = { "Cut", "Copy", "Paste" };
+	String[] editItems = { "Cut", "Copy", "Paste", "Undo" };
 	String[] viewItems = {};
 	String[] runItems = {"Run"};
 	String[] runasItems = {"Java"};
+
+	//This lays out which extension maps to which programming language
 	private HashMap<String,String> extToLang = new HashMap<String,String>();
+	//languages supported by this editor
 	private HashSet<String> heldLanguages = new HashSet<String>();
+	//listener to detect a language the user chooses, and changes the keywords for that file as appropiate
 	private LanguageListener languageListener;
+	//listener to compile and run programs within the editor
+	private RunasListener runasListener;
+	//HashMap containing al the keywords for every language
+	//Outer String is the language, inner string is the section of keywords, and HashSet actually contains the keywords
 	private HashMap<String,HashMap<String,HashSet<String>>> keywords = new HashMap<String,HashMap<String,HashSet<String>>>();
+	//variable to hold copied text
 	private String copiedText;
+	//variable to keep color when copying text
 	private Color copiedColor;
+	//editor settings
 	private String fontName = "monospaced";
 	private int fontSize = 16;
 	private int tabSize = 5;
 	Font font = new Font(fontName,Font.PLAIN,fontSize);
+	//this is the variable to hold the entire style of the editor
 	private StyleContext styleContext = new StyleContext();
 
 
-
+	//This class listens to the select language menu buttons, and changes active keywords depending on what the user selects
 	class LanguageListener implements ActionListener{
 
 		public void actionPerformed(ActionEvent e){
+
 			System.out.println("language listener running");
+			
+			//chosen language
 			JMenuItem language = (JMenuItem)e.getSource();
 
 			Scroller scroller = ((Scroller)panel.getSelectedComponent());
@@ -91,7 +116,8 @@ public class Editor implements ActionListener {
 		}
 	}
 
-	class runasListener implements ActionListener{
+	//class used to compile and run programs within the editor. Attempting to make this an IDE type thing.
+	class RunasListener implements ActionListener{
 
 		public void actionPerformed(ActionEvent e){
 
@@ -109,6 +135,8 @@ public class Editor implements ActionListener {
 
 		public void compileAndRun(String lang) throws IOException, InterruptedException{
 
+			//switch statement that actually does the work of compiling and running a program
+			//TODO: Add console functionality as well as "projects" to organize code
 			switch(lang){
 
 			case "Java":
@@ -125,6 +153,7 @@ public class Editor implements ActionListener {
 
 	}
 
+	//The constructor sets all of the styles for the editor
 	public Editor(){
 
 		TabSet tabSet = getTabSet();
@@ -151,9 +180,11 @@ public class Editor implements ActionListener {
 		StyleConstants.setForeground(other,new Color(5,91,14));
 
 		languageListener = new LanguageListener();
-
+		//runasListener = new RunasListener
 
 	}
+
+	//This does all of the graphics initialization and setting up the actual environment
 	public void runGraphics() throws IOException {
 
 
@@ -161,13 +192,16 @@ public class Editor implements ActionListener {
 
 		System.out.println(keywords);
 
+		//the outer window
 		frame = new JFrame("Text Editor");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+		//the outer contentPane
 		panel = new JTabbedPane();
 
 		frame.setContentPane(panel);
 
+		//contains all of the menu items
 		JMenuBar menuBar = new JMenuBar();
 
 		JMenu fileMenu = new EditorMenu("File");
@@ -251,8 +285,7 @@ public class Editor implements ActionListener {
 
 		frame.setJMenuBar(menuBar);
 
-		// frame.setSize(new Dimension(400,400));
-
+		//getting size of screen to determine how large the text editor should be
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 		int width = (int)screenSize.getWidth();
@@ -260,8 +293,7 @@ public class Editor implements ActionListener {
 		int height = (int)screenSize.getHeight();
 
 
-		//frame.setMinimumSize(new Dimension(300,600));
-
+		//setting appropiate editor size in proportion to the screen
 		frame.setPreferredSize(new Dimension((int)(height/1.25),(int)(height/1.25)));
 
 		frame.pack();
@@ -269,6 +301,7 @@ public class Editor implements ActionListener {
 		int x = width/2-frame.getWidth()/2;
 		int y = height/2-frame.getHeight()/2;
 
+		//sets editor location relative to screen
 		frame.setLocation(x, y);
 
 
@@ -278,20 +311,21 @@ public class Editor implements ActionListener {
 		menuBar.setVisible(true);
 		frame.setVisible(true);
 
-		// a submenu
-
 	}
 
+	//pulling some bs to customize tab size for the editor
 	public TabSet getTabSet(){
 
 		Canvas c = new Canvas();
 
+		//sketchy way of getting font width to calculate relative tab size;
 		FontMetrics fm = c.getFontMetrics(font);
 
 		int charWidth = fm.charWidth(' ');
 
 		int tabWidth = charWidth*tabSize;
 
+		//this is how many tabs are allowed per line
 		TabStop[] tabStops = new TabStop[100];
 
 		for(int i=0;i<tabStops.length;i++){
@@ -319,12 +353,14 @@ public class Editor implements ActionListener {
 
 		String text = builder.toString();
 
+		//pattern to find the extension and language within the keywords.txt file
 		Pattern p = Pattern.compile("(?<=\\[)\\S+ \\.\\S+(?=\\])");
 
 		ArrayList<String> languages = new ArrayList<String>();
 
 		Matcher m = p.matcher(text);
 
+		//finding each language section
 		while(m.find()){
 			System.out.println("found");
 			String[] language = m.group().split(" ");
@@ -375,14 +411,17 @@ public class Editor implements ActionListener {
 				}
 			}
 
+			//actually putting language with keywords into HashMap<>
 			this.keywords.put(languages.get(i), tempMap);
 		}
 	}
 
+	//calculates number of lines in a textpane
 	public int getLinesTextPane(JTextPane pane){
 
 		int lines = 1;
 
+		//calculates based off number of new lines
 		Pattern p = Pattern.compile("\\\n");
 
 		Matcher m = p.matcher(pane.getText());
@@ -397,7 +436,7 @@ public class Editor implements ActionListener {
 
 
 
-
+	//this handles making sure the line numbers are calculated correctly
 	public void setLineListener(TextAreaPanel p, LineNumberList lines){
 
 		JTextPane area = p.getTextArea();
@@ -430,6 +469,7 @@ public class Editor implements ActionListener {
 		});
 	}
 
+	//this handles creating shortcuts for the menu items
 	public void setKeyMnemonic(JMenuItem item) {
 
 		switch (item.getText()) {
@@ -484,6 +524,7 @@ public class Editor implements ActionListener {
 
 	}
 
+	//handles the most important menu items
 	public void actionPerformed(ActionEvent e) {
 
 		if (e.getSource() instanceof JMenuItem) {
@@ -543,16 +584,20 @@ public class Editor implements ActionListener {
 
 	}
 
+	//handles creating a new file
 	public void handleNew() {
 
-
+		//outer panel of this new tab
 		JPanel pane = new JPanel(new BorderLayout());
 
+		//this is the line numbers panel
 		JPanel temp = new JPanel();
 
 		temp.setPreferredSize(new Dimension(50,0));
 
 		//System.out.println(temp.getBackground());
+
+		//creating the line numbers here
 
 		LineNumberList lineNumbers = new LineNumberList(font);
 
@@ -574,9 +619,6 @@ public class Editor implements ActionListener {
 
 		Scroller tab = new Scroller(pane);
 
-
-		tab.getVerticalScrollBar().setUnitIncrement(25);
-
 		panel.addTab("new " + (panel.getTabCount() + 1) + ".txt", tab);
 
 		textArea.setFile(new File("new " + (panel.getTabCount() + 1) + ".txt"));
@@ -589,6 +631,8 @@ public class Editor implements ActionListener {
 
 	}
 
+	//Doesn't handle opening the file.
+	//It sets up which file is chosen and then passes this to the openFile() method
 	public void handleOpen() {
 
 		JFileChooser fileChooser = new JFileChooser();
@@ -612,6 +656,7 @@ public class Editor implements ActionListener {
 
 	}
 
+	//saves a file
 	public void handleSave() {
 
 		if (panel.getTabCount() > 0) {
@@ -620,6 +665,8 @@ public class Editor implements ActionListener {
 
 			int selected = panel.getSelectedIndex();
 
+			//checking whether tab is brand new or not
+			//If file was opened instead of created this would be false
 			if (currentTab.getIsNew()) {
 
 				JFileChooser fileChooser = new JFileChooser();
@@ -749,6 +796,7 @@ public class Editor implements ActionListener {
 		}
 	}
 
+	//this actually sets the listener to change the values in the savedFiles ArrayList<>
 	public void setSavedListener(TextAreaPanel currentTab, int selected) {
 
 		currentTab.getTextArea().getDocument().addDocumentListener(new DocumentListener() {
@@ -890,6 +938,7 @@ public class Editor implements ActionListener {
 
 	}
 
+	//handles closing a tab/file
 	public void handleClose() {
 
 		int selected = panel.getSelectedIndex();
@@ -929,6 +978,9 @@ public class Editor implements ActionListener {
 		}
 	}
 
+	//three functions below probably interfere with their built-in counterparts
+
+	//handles copying text. I think this interferes with the built in ctrl-c function
 	public void handleCopy() {
 
 		TextAreaPanel currentTab = ((Scroller) panel.getSelectedComponent()).getTextArea();
@@ -940,6 +992,7 @@ public class Editor implements ActionListener {
 		copiedColor = textArea.getSelectedTextColor();
 	}
 
+	//handles cutting text. I think this interferes with the built in ctrl-x function
 	public void handleCut() {
 
 		TextAreaPanel currentTab = ((Scroller) panel.getSelectedComponent()).getTextArea();
@@ -952,6 +1005,7 @@ public class Editor implements ActionListener {
 
 	}
 
+	//handles pasting text. I think this interferes with the built in ctrl-v function
 	public void handlePaste() {
 
 		TextAreaPanel currentTab = ((Scroller) panel.getSelectedComponent()).getTextArea();
@@ -981,16 +1035,17 @@ public class Editor implements ActionListener {
 		}
 	}
 
+	//actually handles opening the file.
 	public void openFile(File file) {
 
+		//outer panel with text in it
 		JPanel pane = new JPanel(new BorderLayout());
 
 		JPanel temp = new JPanel();
 
 		temp.setPreferredSize(new Dimension(50,0));
 
-		//System.out.println(temp.getBackground());
-
+		//creating line numbers area
 		LineNumberList lineNumbers = new LineNumberList(font);
 
 
@@ -1003,10 +1058,7 @@ public class Editor implements ActionListener {
 
 		TextAreaPanel textArea = new TextAreaPanel(styleContext);
 
-
 		String fileName = file.getName();
-
-
 
 		System.out.println(fileName);
 		textArea.setFile(file);
@@ -1016,8 +1068,6 @@ public class Editor implements ActionListener {
 		pane.add(textArea,BorderLayout.CENTER);
 
 		Scroller tab = new Scroller(pane);
-
-		tab.getVerticalScrollBar().setUnitIncrement(25);
 
 		panel.addTab(file.getName(), tab);
 
@@ -1087,6 +1137,8 @@ public class Editor implements ActionListener {
 		}
 	}
 
+
+	//TODO: May handle running programs. That may be the job of RunasListener Instead.
 	public void handleRun(){
 
 
