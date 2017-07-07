@@ -14,6 +14,7 @@ public class Scroller extends JScrollPane{
 		
 		textArea = (TextAreaPanel)panel.getComponent(1);
 		
+		getVerticalScrollBar().setUnitIncrement(25);	
 	}
 
 	public TextAreaPanel getTextArea(){

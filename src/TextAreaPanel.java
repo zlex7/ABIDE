@@ -21,7 +21,11 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.Utilities;
+import javax.swing.text.DefaultStyledDocument;
 import java.awt.Insets;
+import javax.swing.text.DefaultCaret;
+import java.lang.Thread;
+import java.lang.InterruptedException;
 //This is the main text area of the editor, where all of the programming happens
 public class TextAreaPanel extends JPanel {
 
@@ -70,6 +74,10 @@ public class TextAreaPanel extends JPanel {
 		normalAttributes.addAttributes(textArea.getInputAttributes());
 
 		setForeground(whiteTheme);
+
+		DefaultCaret caret = (DefaultCaret)textArea.getCaret();
+	
+		caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
 
 		textArea.setCaretColor(whiteTheme);
 		// keywordAttributes.addAttributes(styleContext.getStyle("keywords"));
@@ -188,7 +196,13 @@ public class TextAreaPanel extends JPanel {
 	//call this after updating keywords
 	public void updateKeywords() throws BadLocationException {
 
+		double startTime = System.currentTimeMillis();
+
 		StyledDocument d = textArea.getStyledDocument();
+
+		//StyledDocument temp = new DefaultStyledDocument();
+
+		//textArea.setStyledDocument(temp);
 
 		Matcher m;
 		String text = null;
@@ -265,6 +279,10 @@ public class TextAreaPanel extends JPanel {
 
 			textArea.setStyledDocument(d);
 		}
+
+		double stopTime = System.currentTimeMillis();
+
+		System.out.println("time took updating: " + (stopTime-startTime));
 
 	}
 
@@ -471,6 +489,7 @@ public class TextAreaPanel extends JPanel {
 						length++;
 					}
 				}
+
 				System.out.println("hello2");
 
 					if (tempOffset > 0) {
@@ -588,6 +607,7 @@ public class TextAreaPanel extends JPanel {
 					}
 
 					if (!indexes.isEmpty()) {
+						System.out.println("there are keywords");
 						super.insertString(fb, offset, text.substring(0, indexes.get(0)), attributeSet);
 						for (i = 0; i < indexes.size(); i += 2) {
 
@@ -614,6 +634,13 @@ public class TextAreaPanel extends JPanel {
 						super.insertString(fb, offset, text, attributeSet);
 
 					}
+					System.out.println("Thread is sleeping");
+					/*try{
+						Thread.sleep(1000);
+					}
+					catch(InterruptedException e){
+						e.printStackTrace();
+					}*/
 					System.out.println("Setting caret position to " + (originalOff + originalLength));
 					textArea.setCaretPosition(originalOff + originalLength);
 					System.out.println("end of update");

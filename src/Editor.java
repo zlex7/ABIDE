@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Stack;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -72,6 +73,7 @@ public class Editor implements ActionListener {
 	String[] viewItems = {};
 	String[] runItems = {"Run"};
 	String[] runasItems = {"Java"};
+	String[] preferenceItems = {"Settings"};
 
 	//This lays out which extension maps to which programming language
 	private HashMap<String,String> extToLang = new HashMap<String,String>();
@@ -88,6 +90,8 @@ public class Editor implements ActionListener {
 	private String copiedText;
 	//variable to keep color when copying text
 	private Color copiedColor;
+
+	private Stack<String[]> pastChanges = new Stack<String[]>();
 	//editor settings
 	private String fontName = "monospaced";
 	private int fontSize = 22;
@@ -102,6 +106,13 @@ public class Editor implements ActionListener {
 	private Color whiteTheme = new Color(239,237,230);
 	private Color yellowTheme = new Color(226,244,66);
 	private Color transparentTheme = new Color(1f,0f,0f,0f);
+	private Font fontTheme = new javax.swing.plaf.FontUIResource("Consolas",Font.PLAIN,20);
+
+
+	private Color blueWords = new Color(99, 146, 216);
+	private Color pinkWords = new Color(217, 66, 244);
+	private Color greenWords = new Color(23, 137, 53);
+	private Color purpleWords = new Color(87, 50, 168);
 	//This class listens to the select language menu buttons, and changes active keywords depending on what the user selects
 	class LanguageListener implements ActionListener{
 
@@ -166,7 +177,7 @@ public class Editor implements ActionListener {
 	//The constructor sets all of the styles for the editor
 	public Editor(){
 
-		setUIFont(new javax.swing.plaf.FontUIResource("Consolas",Font.PLAIN,20));
+		//setUIFont(new javax.swing.plaf.FontUIResource("Consolas",Font.PLAIN,20));
 		//UIManager.put("Menu.foreground", whiteTheme);
 		//UIManager.put("Menu.selectionBackground", greyTheme);
 		//UIManager.put("Menu.background", blackTheme);
@@ -186,6 +197,7 @@ public class Editor implements ActionListener {
 	  UIManager.put("TabbedPane.tabsOverlapBorder", true);
 	// UIManager.put("TabbedPane.darkShadow", greyTheme);
 	 UIManager.put("TabbedPane.focus", greyTheme);
+	 UIManager.put("TabbedPane.font", fontTheme);
 		//UIManager.put("MenuBar.background", blackTheme);
 		//UIManager.put("MenuBar.foreground", whiteTheme);
 		//UIManager.put("MenuBar.border", blackTheme);
@@ -193,7 +205,8 @@ public class Editor implements ActionListener {
 		//UIManager.put("MenuItem.foreground", whiteTheme);
 	////	UIManager.put("MenuItem.selectionBackground", greyTheme);
 	//	UIManager.put("MenuItem.border", blackTheme);
-	//	UIManager.put("MenuItem.opaque", true);
+	 UIManager.put("MenuItem.font", new FontUIResource("Arial",Font.PLAIN,18));
+	 UIManager.put("Menu.font", new FontUIResource("Arial",Font.PLAIN,18));
 	UIManager.put("ScrollPane.border",blackTheme);
 	UIManager.put("TextPane.background", new ColorUIResource(blackTheme));
 	UIManager.put("TextPane.inactiveBackground", new ColorUIResource(blackTheme));
@@ -213,17 +226,17 @@ public class Editor implements ActionListener {
 		Style keywords = styleContext.addStyle("keywords",standard);
 		StyleConstants.setBold(keywords, true);
 		Style access=styleContext.addStyle("access",keywords);
-		StyleConstants.setForeground(access, new Color(5,91,14));
+		StyleConstants.setForeground(access, blueWords);
 		Style modifiers=styleContext.addStyle("modifiers",keywords);
-		StyleConstants.setForeground(modifiers,new Color(5,91,14));
+		StyleConstants.setForeground(modifiers,pinkWords);
 		Style control=styleContext.addStyle("controlflow",keywords);
-		StyleConstants.setForeground(control,new Color(6,10,124));
+		StyleConstants.setForeground(control,greenWords);
 		Style datatypes=styleContext.addStyle("datatypes",keywords);
-		StyleConstants.setForeground(datatypes,new Color(58,2,66));
+		StyleConstants.setForeground(datatypes,blueWords);
 		Style errors=styleContext.addStyle("errors",keywords);
-		StyleConstants.setForeground(errors,new Color(6,10,124));
+		StyleConstants.setForeground(errors,blueWords);
 		Style other=styleContext.addStyle("other",keywords);
-		StyleConstants.setForeground(other,new Color(5,91,14));
+		StyleConstants.setForeground(other,blueWords);
 
 		languageListener = new LanguageListener();
 		//runasListener = new RunasListener
@@ -273,7 +286,8 @@ public class Editor implements ActionListener {
 		//contains all of the menu items
 		JMenuBar menuBar = new JMenuBar();
 
-		JMenu fileMenu = new EditorMenu("File");
+		JMenu fileMenu = new EditorMenu("<html><p style='margin-top:0px;'>File");
+
 
 		for (String s : fileItems) {
 
@@ -284,7 +298,7 @@ public class Editor implements ActionListener {
 
 		}
 
-		JMenu editMenu = new EditorMenu("Edit");
+		JMenu editMenu = new EditorMenu("<html><p style='margin-top:0px;'>Edit");
 
 		for (String s : editItems) {
 
@@ -295,7 +309,7 @@ public class Editor implements ActionListener {
 
 		}
 
-		JMenu viewMenu = new EditorMenu("Edit");
+		JMenu viewMenu = new EditorMenu("<html><p style='margin-top:0px;'>View");
 
 		for (String s : viewItems) {
 
@@ -306,7 +320,7 @@ public class Editor implements ActionListener {
 
 		}
 
-		JMenu languageMenu = new EditorMenu("Language");
+		JMenu languageMenu = new EditorMenu("<html><p style='margin-top:0px;'>Language");
 
 		for(String lang : keywords.keySet()){
 
@@ -317,7 +331,7 @@ public class Editor implements ActionListener {
 
 		}
 
-		JMenu runMenu = new EditorMenu("Run");
+		JMenu runMenu = new EditorMenu("<html><p style='margin-top:0px;'>Run");
 
 		for(String s : runItems){
 
@@ -341,8 +355,18 @@ public class Editor implements ActionListener {
 
 		}
 
-		runMenu.add(runasMenu);
+		JMenu preferenceMenu = new EditorMenu("<html><p style='margin-top:0px;'>Preferences");
 
+		for(String s : preferenceItems){
+
+			JMenuItem item = new JMenuItem(s);
+			setKeyMnemonic(item);
+			//item.addActionListener(runasListener);
+			preferenceMenu.add(item);
+
+		}
+
+		runMenu.add(runasMenu);
 
 		// menu = new JMenu("Another Menu");
 
@@ -350,10 +374,13 @@ public class Editor implements ActionListener {
 
 		menuBar.add(editMenu);
 
+		menuBar.add(viewMenu);
+
 		menuBar.add(languageMenu);
 
 		menuBar.add(runMenu);
 
+		menuBar.add(preferenceMenu);
 		frame.setJMenuBar(menuBar);
 
 		//getting size of screen to determine how large the text editor should be
@@ -533,7 +560,7 @@ public class Editor implements ActionListener {
 
 			 public void changeLines(){
 
-				 lines.drawLineNumbers(getLinesTextPane(area));
+//				 lines.drawLineNumbers(getLinesTextPane(area));
 			 }
 
 
@@ -639,6 +666,10 @@ public class Editor implements ActionListener {
 			case "Paste":
 
 				handlePaste();
+				break;
+			case "Undo":
+
+				handleUndo();
 				break;
 			case "Close":
 
@@ -1089,7 +1120,7 @@ public class Editor implements ActionListener {
 			try{
 				Document d = textArea.getDocument();
 				d.insertString(selecStart, copiedText, null);
-				//textArea.setCaretPosition(selecStart+copiedText.length());
+				textArea.setCaretPosition(selecStart+copiedText.length());
 			}
 			catch(BadLocationException e){
 				e.printStackTrace();
@@ -1103,6 +1134,14 @@ public class Editor implements ActionListener {
 		}
 	}
 
+	public void handleUndo(){
+
+	
+
+	}
+
+
+
 	//actually handles opening the file.
 	public void openFile(File file) {
 
@@ -1110,6 +1149,8 @@ public class Editor implements ActionListener {
 		JPanel pane = new JPanel(new BorderLayout());
 
 		JPanel temp = new JPanel();
+
+		temp.setBackground(blackTheme);
 
 		temp.setPreferredSize(new Dimension(50,0));
 
