@@ -1,5 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.Graphics;
+import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.Utilities;
-
+import java.awt.Insets;
 //This is the main text area of the editor, where all of the programming happens
 public class TextAreaPanel extends JPanel {
 
@@ -33,14 +34,20 @@ public class TextAreaPanel extends JPanel {
 	//whether the file was just created (specifically by handleNew())
 	boolean isNew = false;
 
+	boolean changed = true;
 	//stores the keywords based on what is passed to it from the editor class
 	HashMap<String, HashSet<String>> keywords = new HashMap<String, HashSet<String>>();
-	
+
 	//the style of TextAreaPanel
 	//most of it is inherited from Editor, but there are some specifics to this class
 	StyleContext styleContext;
 	SimpleAttributeSet keywordAttributes;
 	SimpleAttributeSet normalAttributes;
+
+	private Color blackTheme = new Color(38,38,38);
+	private Color greyTheme = new Color(128, 129, 135);
+	private Color whiteTheme = new Color(239,237,230);
+
 
 	public TextAreaPanel(StyleContext styleContext) {
 
@@ -62,6 +69,9 @@ public class TextAreaPanel extends JPanel {
 
 		normalAttributes.addAttributes(textArea.getInputAttributes());
 
+		setForeground(whiteTheme);
+
+		textArea.setCaretColor(whiteTheme);
 		// keywordAttributes.addAttributes(styleContext.getStyle("keywords"));
 
 	}
@@ -149,6 +159,16 @@ public class TextAreaPanel extends JPanel {
 		return isNew;
 	}
 
+	public void setIsChanged(boolean b) {
+
+		changed = b;
+	}
+
+	public boolean getIsChanged() {
+
+		return changed;
+	}
+
 	//returns either the style associated with a word or null (not a keyword)
 	public String getKeywordStyle(String word) {
 
@@ -203,7 +223,7 @@ public class TextAreaPanel extends JPanel {
 
 				String word = m.group();
 
-				System.out.println(keywords);
+				//System.out.println(keywords);
 				System.out.println(word);
 
 				//returns the style associated with the keyword or null if the word is not a keyword
@@ -293,11 +313,10 @@ public class TextAreaPanel extends JPanel {
 
 						String word = m.group();
 
-						System.out.println(keywords);
 						System.out.println(word);
 
 						String style = getKeywordStyle(word);
-						
+
 						if (style != null) {
 							int start = m.start();
 							System.out.println("start: " + start);
@@ -536,7 +555,7 @@ public class TextAreaPanel extends JPanel {
 
 						String word = m.group();
 
-						System.out.println(keywords);
+					//	System.out.println(keywords);
 						System.out.println("word: " + word);
 
 						if (getKeywordStyle(word) != null) {

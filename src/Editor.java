@@ -43,10 +43,15 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.TabSet;
 import javax.swing.text.TabStop;
+import javax.swing.plaf.*;
+import javax.swing.UIManager;
+import javax.swing.ImageIcon;
+import java.awt.Container;
+import javax.swing.BorderFactory;
+import javax.swing.border.EmptyBorder;
 
 public class Editor implements ActionListener {
 
-	// TextAreaPanel currentTab;
 
 	//determines which tabs have safed files
 	//TODO: change this method of checking whether files are saved. It's prone to mistakes
@@ -85,20 +90,25 @@ public class Editor implements ActionListener {
 	private Color copiedColor;
 	//editor settings
 	private String fontName = "monospaced";
-	private int fontSize = 16;
+	private int fontSize = 22;
 	private int tabSize = 5;
 	Font font = new Font(fontName,Font.PLAIN,fontSize);
 	//this is the variable to hold the entire style of the editor
 	private StyleContext styleContext = new StyleContext();
 
-
+	private Color greenTheme = new Color(84,130,0);
+	private Color blackTheme = new Color(38,38,38);
+	private Color greyTheme = new Color(128, 129, 135);
+	private Color whiteTheme = new Color(239,237,230);
+	private Color yellowTheme = new Color(226,244,66);
+	private Color transparentTheme = new Color(1f,0f,0f,0f);
 	//This class listens to the select language menu buttons, and changes active keywords depending on what the user selects
 	class LanguageListener implements ActionListener{
 
 		public void actionPerformed(ActionEvent e){
 
 			System.out.println("language listener running");
-			
+
 			//chosen language
 			JMenuItem language = (JMenuItem)e.getSource();
 
@@ -156,12 +166,48 @@ public class Editor implements ActionListener {
 	//The constructor sets all of the styles for the editor
 	public Editor(){
 
+		setUIFont(new javax.swing.plaf.FontUIResource("Consolas",Font.PLAIN,20));
+		//UIManager.put("Menu.foreground", whiteTheme);
+		//UIManager.put("Menu.selectionBackground", greyTheme);
+		//UIManager.put("Menu.background", blackTheme);
+		//UIManager.put("Menu.border", blackTheme);
+		//UIManager.put("Menu.opaque", true);
+		UIManager.put("TabbedPane.selected", blackTheme);
+		UIManager.put("TabbedPane.border", blackTheme);
+	  UIManager.put("TabbedPane.contentBorderInsets", new Insets(0, 0, 0, 0));
+		UIManager.put("TabbedPane.contentOpaque", true);
+		UIManager.put("TabbedPane.tabInsets", new Insets(0, 15, 20, 15));
+		UIManager.put("TabbedPane.shadow", greyTheme);
+		UIManager.put("TabbedPane.borderHightlightColor", greyTheme);
+	   UIManager.put("TabbedPane.darkShadow", greyTheme);
+	 UIManager.put("TabbedPane.light", greyTheme);
+	 UIManager.put("TabbedPane.selectHighlight", greyTheme);
+	 UIManager.put("TabbedPane.unselectedTabHighlight", greyTheme);
+	  UIManager.put("TabbedPane.tabsOverlapBorder", true);
+	// UIManager.put("TabbedPane.darkShadow", greyTheme);
+	 UIManager.put("TabbedPane.focus", greyTheme);
+		//UIManager.put("MenuBar.background", blackTheme);
+		//UIManager.put("MenuBar.foreground", whiteTheme);
+		//UIManager.put("MenuBar.border", blackTheme);
+		//UIManager.put("MenuItem.background", blackTheme);
+		//UIManager.put("MenuItem.foreground", whiteTheme);
+	////	UIManager.put("MenuItem.selectionBackground", greyTheme);
+	//	UIManager.put("MenuItem.border", blackTheme);
+	//	UIManager.put("MenuItem.opaque", true);
+	UIManager.put("ScrollPane.border",blackTheme);
+	UIManager.put("TextPane.background", new ColorUIResource(blackTheme));
+	UIManager.put("TextPane.inactiveBackground", new ColorUIResource(blackTheme));
+	UIManager.put("TextPane.border", new ColorUIResource(blackTheme));
+	//UIManager.put("Panel.background", blackTheme);
+	UIManager.put("TextArea.background",new ColorUIResource(greyTheme));
+
 		TabSet tabSet = getTabSet();
 
 		Style standard = styleContext.addStyle("standard", null);
 		StyleConstants.setFontFamily(standard, fontName);
 		StyleConstants.setFontSize(standard,fontSize);
 		StyleConstants.setTabSet(standard, tabSet);
+		StyleConstants.setForeground(standard,whiteTheme);
 		//Style lineNumbers = styleContext.addStyle("lineNumbers",standard);
 		//StyleConstants.setAlignment(lineNumbers,StyleConstants.ALIGN_RIGHT);
 		Style keywords = styleContext.addStyle("keywords",standard);
@@ -184,6 +230,16 @@ public class Editor implements ActionListener {
 
 	}
 
+	public static void setUIFont (javax.swing.plaf.FontUIResource f){
+    java.util.Enumeration keys = UIManager.getDefaults().keys();
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get (key);
+      if (value != null && value instanceof javax.swing.plaf.FontUIResource)
+        UIManager.put (key, f);
+      }
+    }
+
 	//This does all of the graphics initialization and setting up the actual environment
 	public void runGraphics() throws IOException {
 
@@ -194,10 +250,23 @@ public class Editor implements ActionListener {
 
 		//the outer window
 		frame = new JFrame("Text Editor");
+
+		ImageIcon JT = new ImageIcon("images/JT.png");
+
+		frame.setIconImage(JT.getImage());
+
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		//the outer contentPane
 		panel = new JTabbedPane();
+
+		panel.setOpaque(true);
+
+		panel.setBackground(greyTheme);
+
+		panel.setForeground(whiteTheme);
+
+ 	  panel.setBorder(new EmptyBorder(0, 0, 0, 0));
 
 		frame.setContentPane(panel);
 
@@ -260,6 +329,8 @@ public class Editor implements ActionListener {
 		}
 
 		JMenu runasMenu = new EditorMenu("Run As");
+
+
 
 		for(String s : runasItems){
 
@@ -590,8 +661,12 @@ public class Editor implements ActionListener {
 		//outer panel of this new tab
 		JPanel pane = new JPanel(new BorderLayout());
 
+		pane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+
 		//this is the line numbers panel
 		JPanel temp = new JPanel();
+
+		temp.setBackground(blackTheme);
 
 		temp.setPreferredSize(new Dimension(50,0));
 
@@ -602,7 +677,7 @@ public class Editor implements ActionListener {
 		LineNumberList lineNumbers = new LineNumberList(font);
 
 
-		lineNumbers.setMargin(new Insets(-2,0,0,0));
+		lineNumbers.setMargin(new Insets(-5,0,0,0));
 
 
 		temp.add(lineNumbers);
@@ -691,19 +766,13 @@ public class Editor implements ActionListener {
 
 							panel.setTitleAt(selected, fileName);
 
+
 							if(fileName.contains(".")){
 								String extension = fileName.split("\\.")[1];
 								if(heldLanguages.contains(extension)){
 									currentTab.setKeywords(keywords.get(extToLang.get(extension)));
 								}
 
-
-								try{
-									currentTab.updateKeywords();
-								}
-								catch(BadLocationException e){
-									e.printStackTrace();
-								}
 							}
 
 							try {
@@ -721,6 +790,12 @@ public class Editor implements ActionListener {
 							} catch (IOException err) {
 								JOptionPane.showMessageDialog(frame, "File could not be saved");
 							}
+							currentTab.setIsNew(false);
+							if(currentTab.getIsChanged()){
+
+								panel.setTitleAt(panel.getSelectedIndex(),panel.getTitleAt(panel.getSelectedIndex()).substring(1));
+							}
+							currentTab.setIsChanged(false);
 						}
 
 						else if (returned == JOptionPane.NO_OPTION) {
@@ -738,14 +813,6 @@ public class Editor implements ActionListener {
 							String extension = fileName.split("\\.")[1];
 							if(heldLanguages.contains(extension)){
 								currentTab.setKeywords(keywords.get(extToLang.get(extension)));
-							}
-
-
-							try{
-								currentTab.updateKeywords();
-							}
-							catch(BadLocationException e){
-								e.printStackTrace();
 							}
 						}
 
@@ -766,7 +833,6 @@ public class Editor implements ActionListener {
 
 				}
 
-				currentTab.setIsNew(false);
 			}
 
 			else {
@@ -816,7 +882,8 @@ public class Editor implements ActionListener {
 			public void update() {
 
 				System.out.println("selected: " + selected);
-				savedFiles.set(selected, false);
+				currentTab.setIsChanged(true);
+				panel.setTitleAt(panel.getSelectedIndex(),"*"+panel.getTitleAt(panel.getSelectedIndex()));
 				currentTab.getTextArea().getDocument().removeDocumentListener(this);
 			}
 		});
@@ -831,11 +898,11 @@ public class Editor implements ActionListener {
 
 			int selected = panel.getSelectedIndex();
 
-			JFileChooser fileChooser = new JFileChooser();
+				JFileChooser fileChooser = new JFileChooser();
 
-			int returned = fileChooser.showSaveDialog(frame);
+				int returned = fileChooser.showSaveDialog(frame);
 
-			if (returned == JFileChooser.APPROVE_OPTION) {
+				if (returned == JFileChooser.APPROVE_OPTION) {
 
 				File file = fileChooser.getSelectedFile();
 
@@ -856,14 +923,6 @@ public class Editor implements ActionListener {
 							if(heldLanguages.contains(extension)){
 								currentTab.setKeywords(keywords.get(extToLang.get(extension)));
 							}
-
-
-							try{
-								currentTab.updateKeywords();
-							}
-							catch(BadLocationException e){
-								e.printStackTrace();
-							}
 						}
 
 						try {
@@ -881,12 +940,21 @@ public class Editor implements ActionListener {
 						} catch (IOException err) {
 							JOptionPane.showMessageDialog(frame, "File could not be saved");
 						}
+						currentTab.setIsNew(false);
+
+						if(currentTab.getIsChanged()){
+
+							panel.setTitleAt(panel.getSelectedIndex(),panel.getTitleAt(panel.getSelectedIndex()).substring(1));
+						}
+						currentTab.setIsChanged(false);
+
 					}
 
 					else if (returned == JOptionPane.NO_OPTION) {
 
 					}
-				}
+
+			}
 
 				else {
 
@@ -900,13 +968,6 @@ public class Editor implements ActionListener {
 							currentTab.setKeywords(keywords.get(extToLang.get(extension)));
 						}
 
-
-						try{
-							currentTab.updateKeywords();
-						}
-						catch(BadLocationException e){
-							e.printStackTrace();
-						}
 					}
 
 					try {
@@ -927,6 +988,13 @@ public class Editor implements ActionListener {
 						JOptionPane.showMessageDialog(frame, "File could not be saved");
 					}
 				}
+
+				if(currentTab.getIsChanged()){
+
+					panel.setTitleAt(panel.getSelectedIndex(),panel.getTitleAt(panel.getSelectedIndex()).substring(1));
+				}
+				currentTab.setIsChanged(false);
+				currentTab.setIsNew(false);
 
 			}
 		}
@@ -1049,7 +1117,7 @@ public class Editor implements ActionListener {
 		LineNumberList lineNumbers = new LineNumberList(font);
 
 
-		lineNumbers.setMargin(new Insets(-2,0,0,0));
+		lineNumbers.setMargin(new Insets(-5,0,0,0));
 
 
 		temp.add(lineNumbers);
@@ -1112,11 +1180,9 @@ public class Editor implements ActionListener {
 
 
 				try{
-					System.out.println("updating keywords");
-					textArea.updateKeywords();
 					textArea.setKeywordListener();
 				}
-				catch(BadLocationException e){
+				catch(Exception e){
 					e.printStackTrace();
 				}
 			}
