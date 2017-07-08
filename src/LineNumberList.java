@@ -2,7 +2,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.ComponentOrientation;
 import javax.swing.JTextArea;
-
+import javax.swing.text.DefaultCaret;
+import java.awt.Insets;
 
 //this class is what draws the line numbers on the left side of the editor
 public class LineNumberList extends JTextArea{
@@ -24,9 +25,9 @@ public class LineNumberList extends JTextArea{
 		//font is same as main editor font
 		setFont(font);
 
-		setBackground(new Color(238,238,238));
+	//	setBackground(new Color(238,238,238));
 
-		setForeground(new Color(138,138,92));
+//		setForeground(new Color(138,138,92));
 
 		setEditable(false);
 
@@ -39,6 +40,12 @@ public class LineNumberList extends JTextArea{
 		setBackground(blackTheme);
 
 		setForeground(whiteTheme);
+
+		setMargin(new Insets(-5,10,10,0));
+
+		DefaultCaret caret = (DefaultCaret)getCaret();
+
+		caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
 
 	}
 

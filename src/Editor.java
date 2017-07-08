@@ -208,11 +208,24 @@ public class Editor implements ActionListener {
 	 UIManager.put("MenuItem.font", new FontUIResource("Arial",Font.PLAIN,18));
 	 UIManager.put("Menu.font", new FontUIResource("Arial",Font.PLAIN,18));
 	UIManager.put("ScrollPane.border",blackTheme);
+	UIManager.put("ScrollBar.thumb", new ColorUIResource(blackTheme));
+	UIManager.put("ScrollBar.thumbDarkShadow", new ColorUIResource(blackTheme));
+	UIManager.put("ScrollBar.thumbShadow", new ColorUIResource(blackTheme));
+	UIManager.put("ScrollBar.thumbHighlight", new ColorUIResource(blackTheme));
+	UIManager.put("ScrollBar.thumbHighlight", new ColorUIResource(blackTheme));
+	UIManager.put("ScrollBar.trackHighlight", new ColorUIResource(greyTheme));
+	UIManager.put("ScrollBar.track", new ColorUIResource(greyTheme));
+	UIManager.put("ScrollBar.background", new ColorUIResource(greyTheme));
+	UIManager.put("ScrollBar.foreground", new ColorUIResource(blackTheme));
+	//UIManager.put("ScrollBar.opaque",  false);
+
+
 	UIManager.put("TextPane.background", new ColorUIResource(blackTheme));
 	UIManager.put("TextPane.inactiveBackground", new ColorUIResource(blackTheme));
 	UIManager.put("TextPane.border", new ColorUIResource(blackTheme));
 	//UIManager.put("Panel.background", blackTheme);
 	UIManager.put("TextArea.background",new ColorUIResource(greyTheme));
+
 
 		TabSet tabSet = getTabSet();
 
@@ -560,7 +573,7 @@ public class Editor implements ActionListener {
 
 			 public void changeLines(){
 
-//				 lines.drawLineNumbers(getLinesTextPane(area));
+				 lines.drawLineNumbers(getLinesTextPane(area));
 			 }
 
 
@@ -708,7 +721,7 @@ public class Editor implements ActionListener {
 		LineNumberList lineNumbers = new LineNumberList(font);
 
 
-		lineNumbers.setMargin(new Insets(-5,0,0,0));
+		//lineNumbers.setMargin(new Insets(-5,0,0,0));
 
 
 		temp.add(lineNumbers);
@@ -718,6 +731,13 @@ public class Editor implements ActionListener {
 		TextAreaPanel textArea = new TextAreaPanel(styleContext);
 
 		textArea.setIsNew(true);
+
+		try{
+			textArea.setKeywordListener();
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
 
 		setLineListener(textArea,lineNumbers);
 
@@ -1136,7 +1156,7 @@ public class Editor implements ActionListener {
 
 	public void handleUndo(){
 
-	
+
 
 	}
 
@@ -1152,13 +1172,13 @@ public class Editor implements ActionListener {
 
 		temp.setBackground(blackTheme);
 
-		temp.setPreferredSize(new Dimension(50,0));
+		//temp.setPreferredSize(new Dimension(50,0));
 
 		//creating line numbers area
 		LineNumberList lineNumbers = new LineNumberList(font);
 
 
-		lineNumbers.setMargin(new Insets(-5,0,0,0));
+		//lineNumbers.setMargin(new Insets(-5,0,0,0));
 
 
 		temp.add(lineNumbers);
@@ -1193,10 +1213,13 @@ public class Editor implements ActionListener {
 
 			String line;
 
+			int lines = 0;
+
 			try {
 				while ((line = reader.readLine()) != null) {
 
 					input.append(line).append("\n");
+					lines++;
 
 				}
 			} catch (IOException err) {
@@ -1209,6 +1232,9 @@ public class Editor implements ActionListener {
 
 			textArea.setText(input.toString());
 
+			System.out.println("drawing lines in openfile()");
+
+
 
 			if(fileName.contains(".")){
 
@@ -1217,6 +1243,11 @@ public class Editor implements ActionListener {
 
 				if(heldLanguages.contains(extension)){
 					textArea.setKeywords(keywords.get(extToLang.get(extension)));
+					lineNumbers.drawLineNumbers(lines);
+				}
+
+				else{
+					lineNumbers.drawLineNumbers(lines);
 				}
 
 
@@ -1226,6 +1257,10 @@ public class Editor implements ActionListener {
 				catch(Exception e){
 					e.printStackTrace();
 				}
+			}
+
+			else{
+				lineNumbers.drawLineNumbers(lines);
 			}
 
 			setSavedListener(textArea, panel.getTabCount() - 1);

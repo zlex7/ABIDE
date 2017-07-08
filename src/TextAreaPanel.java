@@ -76,7 +76,7 @@ public class TextAreaPanel extends JPanel {
 		setForeground(whiteTheme);
 
 		DefaultCaret caret = (DefaultCaret)textArea.getCaret();
-	
+
 		caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
 
 		textArea.setCaretColor(whiteTheme);
@@ -194,23 +194,35 @@ public class TextAreaPanel extends JPanel {
 
 	//recolors keywords
 	//call this after updating keywords
+	/*
+		major problem with this method. When I try to optimize it by temporarily replacing the set document,
+		it breaks because of setCaretPosition in remove(). Because the temp set document on the textpane is empty,
+		when I try to set the caret position it doesn't work.
+	*/
+
 	public void updateKeywords() throws BadLocationException {
 
 		double startTime = System.currentTimeMillis();
 
 		StyledDocument d = textArea.getStyledDocument();
 
-		//StyledDocument temp = new DefaultStyledDocument();
-
-		//textArea.setStyledDocument(temp);
-
-		Matcher m;
 		String text = null;
 		try {
 			text = d.getText(0, d.getLength());
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
+
+		StyledDocument temp = new DefaultStyledDocument();
+
+		//temp.insertString(0,text,normalAttributes);
+
+		textArea.setStyledDocument(temp);
+
+		//temp.insertString(0,text,normalAttributes);
+
+
+		Matcher m;
 		if (!text.isEmpty()) {
 			int i = 0;
 			if (Character.isAlphabetic(text.charAt(i))) {
@@ -377,7 +389,7 @@ public class TextAreaPanel extends JPanel {
 
 				super.remove(fb, offset, length);
 
-				System.out.println("running remove");
+				System.out.println("running remove with offset: " + offset + " and length: " + length);
 
 				int startFirst = -1;
 				int endFirst = -1;
@@ -450,7 +462,20 @@ public class TextAreaPanel extends JPanel {
 
 				}
 
-				textArea.setCaretPosition(offset);
+
+				//System.out.println("thread sleeping");
+				try{
+				//	Thread.sleep(2000);
+				}
+				catch(Exception e){
+					e.printStackTrace();
+				}
+
+				System.out.println("setting caret to position: " + offset);
+				if(offset<textArea.getDocument().getLength()){
+					System.out.println("setting caret to position: " + offset);
+					textArea.setCaretPosition(offset);
+				}
 
 			}
 
@@ -634,7 +659,7 @@ public class TextAreaPanel extends JPanel {
 						super.insertString(fb, offset, text, attributeSet);
 
 					}
-					System.out.println("Thread is sleeping");
+					//System.out.println("Thread is sleeping");
 					/*try{
 						Thread.sleep(1000);
 					}
