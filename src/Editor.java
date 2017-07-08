@@ -100,19 +100,19 @@ public class Editor implements ActionListener {
 	//this is the variable to hold the entire style of the editor
 	private StyleContext styleContext = new StyleContext();
 
-	private Color greenTheme = new Color(84,130,0);
-	private Color blackTheme = new Color(38,38,38);
-	private Color greyTheme = new Color(128, 129, 135);
-	private Color whiteTheme = new Color(239,237,230);
-	private Color yellowTheme = new Color(226,244,66);
-	private Color transparentTheme = new Color(1f,0f,0f,0f);
-	private Font fontTheme = new javax.swing.plaf.FontUIResource("Consolas",Font.PLAIN,20);
+	private static Color greenTheme = new Color(84,130,0);
+	private static Color blackTheme = new Color(38,38,38);
+	private static Color greyTheme = new Color(128, 129, 135);
+	private static Color whiteTheme = new Color(239,237,230);
+	private static Color yellowTheme = new Color(226,244,66);
+	private static Color transparentTheme = new Color(1f,0f,0f,0f);
+	private static Font fontTheme = new javax.swing.plaf.FontUIResource("Consolas",Font.PLAIN,20);
 
 
-	private Color blueWords = new Color(99, 146, 216);
-	private Color pinkWords = new Color(217, 66, 244);
-	private Color greenWords = new Color(23, 137, 53);
-	private Color purpleWords = new Color(87, 50, 168);
+	private static Color blueWords = new Color(99, 146, 216);
+	private static Color pinkWords = new Color(217, 66, 244);
+	private static Color greenWords = new Color(23, 137, 53);
+	private static Color purpleWords = new Color(87, 50, 168);
 	//This class listens to the select language menu buttons, and changes active keywords depending on what the user selects
 	class LanguageListener implements ActionListener{
 
@@ -214,9 +214,13 @@ public class Editor implements ActionListener {
 	UIManager.put("ScrollBar.thumbHighlight", new ColorUIResource(blackTheme));
 	UIManager.put("ScrollBar.thumbHighlight", new ColorUIResource(blackTheme));
 	UIManager.put("ScrollBar.trackHighlight", new ColorUIResource(greyTheme));
+	UIManager.put("ScrollBar.trackHighlightForeground", new ColorUIResource(greyTheme));
+
 	UIManager.put("ScrollBar.track", new ColorUIResource(greyTheme));
 	UIManager.put("ScrollBar.background", new ColorUIResource(greyTheme));
 	UIManager.put("ScrollBar.foreground", new ColorUIResource(blackTheme));
+	UIManager.put("ScrollBar.border", new ColorUIResource(blackTheme));
+	UIManager.put("ScrollBar.thumbForeground", new ColorUIResource(blackTheme));
 	//UIManager.put("ScrollBar.opaque",  false);
 
 
@@ -934,7 +938,10 @@ public class Editor implements ActionListener {
 
 				System.out.println("selected: " + selected);
 				currentTab.setIsChanged(true);
-				panel.setTitleAt(panel.getSelectedIndex(),"*"+panel.getTitleAt(panel.getSelectedIndex()));
+				int selected = panel.getSelectedIndex();
+				if(! (panel.getTitleAt(selected).charAt(0)=='*')){
+					panel.setTitleAt(selected,"*"+panel.getTitleAt(panel.getSelectedIndex()));
+				}
 				currentTab.getTextArea().getDocument().removeDocumentListener(this);
 			}
 		});
@@ -995,7 +1002,7 @@ public class Editor implements ActionListener {
 
 						if(currentTab.getIsChanged()){
 
-							panel.setTitleAt(panel.getSelectedIndex(),panel.getTitleAt(panel.getSelectedIndex()).substring(1));
+							//panel.setTitleAt(panel.getSelectedIndex(),panel.getTitleAt(panel.getSelectedIndex()).substring(1));
 						}
 						currentTab.setIsChanged(false);
 
@@ -1042,7 +1049,7 @@ public class Editor implements ActionListener {
 
 				if(currentTab.getIsChanged()){
 
-					panel.setTitleAt(panel.getSelectedIndex(),panel.getTitleAt(panel.getSelectedIndex()).substring(1));
+					//panel.setTitleAt(panel.getSelectedIndex(),panel.getTitleAt(panel.getSelectedIndex()).substring(1));
 				}
 				currentTab.setIsChanged(false);
 				currentTab.setIsNew(false);
