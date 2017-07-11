@@ -54,6 +54,7 @@ public class TextAreaPanel extends JPanel {
 
 	private String keywordRegex = "(?<=\\W)[a-z]+(?=\\W)|\".*\"";
 
+	private boolean replaceQuotesRecursive = false;
 
 	public TextAreaPanel(StyleContext styleContext) {
 
@@ -394,6 +395,17 @@ public class TextAreaPanel extends JPanel {
 			@Override
 			public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
 
+				String deletedText = d.getText(offset,length);
+				boolean areQuotes=false;
+
+				if(deletedText.contains("\"")){
+
+					areQuotes=true;
+
+					DefaultStyledDocument temp = new DefaultStyledDocument();
+
+					textArea.setDocument(temp);
+				}
 				super.remove(fb, offset, length);
 
 				System.out.println("running remove with offset: " + offset + " and length: " + length);
@@ -469,14 +481,60 @@ public class TextAreaPanel extends JPanel {
 
 				}
 
+				if(areQuotes)	{
 
-				//System.out.println("thread sleeping");
-				try{
-				//	Thread.sleep(2000);
-				}
-				catch(Exception e){
-					e.printStackTrace();
-				}
+
+
+              System.out.println("text contains string. searching through file for quotes");
+
+
+              String allText = d.getText(0,d.getLength());
+              char quote2 = '"';
+
+              int count = 1;
+              int index = allText.indexOf(quote2);
+              int lastIndex = -1;
+              System.out.println("offset: " + offset);
+              System.out.println("offset + length: " + (offset+length));
+              while(index>0){
+
+              lastIndex=index;
+              index=allText.indexOf(quote2,index+1);
+             	count+=1;
+
+             	System.out.println("index: " + index);
+
+             	if(index>=offset){
+
+             		if(count%2==0){
+                            System.out.println("replacing quotes with yellow 1");
+                           //System.out.println("inserted text: " + d.getText(lastIndex,index-lastIndex+1));
+                           System.out.println("index: " + index);
+                           System.out.println("last index: " + lastIndex);
+                           if(count<6){
+                           	System.out.println("making yellow : \"" + d.getText(lastIndex,index-lastIndex+1) + "\"");
+                           }
+                           super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
+
+                      		}
+
+
+                     else{
+                     	//System.out.println("making not yellow: " + d.getText(lastIndex+1,index-lastIndex));
+
+                     	replaceQuotesRecursive = true;
+                     	System.out.println("recursively replacing text : \"" + d.getText(lastIndex+1,index-lastIndex-1)+"\"" );
+                     	d.replace(lastIndex+1,index-lastIndex-1,d.getText(lastIndex+1,index-lastIndex-1),normalAttributes);	
+                     }
+                  }
+
+                  }
+
+
+                  textArea.setDocument(d);
+            	}
+
+
 
 				System.out.println("setting caret to position: " + offset);
 				if(offset<textArea.getDocument().getLength()){
@@ -494,14 +552,22 @@ public class TextAreaPanel extends JPanel {
 
 				boolean areQuotes = false;
 
-				if(deletedText.contains("\"")||text.contains("\"")||text.length()>15){
+				if(!replaceQuotesRecursive){
+					if(deletedText.contains("\"")||text.contains("\"")||text.length()>15){
 
-					areQuotes=true;
+						areQuotes=true;
 
-					DefaultStyledDocument temp = new DefaultStyledDocument();
+						DefaultStyledDocument temp = new DefaultStyledDocument();
 
-					textArea.setDocument(temp);
+						textArea.setDocument(temp);
+					}
 				}
+
+				else{
+
+					replaceQuotesRecursive=false;
+				}
+
 				int originalOff = offset;
 				int originalLength = text.length();
 
@@ -551,6 +617,8 @@ public class TextAreaPanel extends JPanel {
 
 								tempOffset -= 1;
 							}
+
+							sb.deleteCharAt(0);
 
 							offset -= sb.length();
 
@@ -678,7 +746,7 @@ public class TextAreaPanel extends JPanel {
 
 					}
 
-					if(areQuotes){
+			if(areQuotes){
 
               System.out.println("text contains string. searching through file for quotes");
 
@@ -706,6 +774,9 @@ public class TextAreaPanel extends JPanel {
                            //System.out.println("inserted text: " + d.getText(lastIndex,index-lastIndex+1));
                            System.out.println("index: " + index);
                            System.out.println("last index: " + lastIndex);
+                           if(count<6){
+                           	System.out.println("making yellow : \"" + d.getText(lastIndex,index-lastIndex+1) + "\"");
+                           }
                            super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
 
                       		}
@@ -713,44 +784,13 @@ public class TextAreaPanel extends JPanel {
 
                      else{
                      	//System.out.println("making not yellow: " + d.getText(lastIndex+1,index-lastIndex));
-                     	super.replace(fb,lastIndex+1,index-lastIndex-1,d.getText(lastIndex+1,index-lastIndex-1),normalAttributes);	
+
+                     	replaceQuotesRecursive = true;
+                     	System.out.println("recursively replacing text : \"" + d.getText(lastIndex+1,index-lastIndex-1)+"\"" );
+                     	d.replace(lastIndex+1,index-lastIndex-1,d.getText(lastIndex+1,index-lastIndex-1),normalAttributes);	
                      }
-                     }
+                  }
 
-
-
-
-             	/*
-             		if(index>=offset && index<=offset+length){
-
-						if(count%2==0){
-                            System.out.println("replacing quotes with yellow 1");
-                           System.out.println("inserted text: " + d.getText(lastIndex,index-lastIndex+1));
-                           System.out.println("index: " + index);
-                           System.out.println("last index: " + lastIndex);
-                           super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
-
-                      		}
-
-                        else{
-
-                              lastIndex=index;
-                               index=allText.indexOf(quote2,index+1);
-                              count+=1;
-
-                              		if(index>0){
-                                          System.out.println("replacing quotes with yellow 2");
-                                          super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
-
-                               			}
-
-                        				else{
-                                        System.out.println("replacing quotes with yellow 3");
-                                        super.replace(fb, lastIndex,d.getLength()-lastIndex+1,d.getText(lastIndex,d.getLength()-lastIndex+1),styleContext.getStyle("strings"));
-                   										}
-                        			}
-                        }
-                        */
                   }
 
             }

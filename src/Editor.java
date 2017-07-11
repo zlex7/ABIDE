@@ -948,6 +948,7 @@ public class Editor implements ActionListener {
 					panel.setTitleAt(selected,"*"+panel.getTitleAt(panel.getSelectedIndex()));
 				}
 				currentTab.getTextArea().getDocument().removeDocumentListener(this);
+				savedFiles.set(selected,false);
 			}
 		});
 
@@ -1275,7 +1276,7 @@ public class Editor implements ActionListener {
 
 
 			setLineListener(textArea,lineNumbers);
-			
+
 			setSavedListener(textArea, panel.getTabCount() - 1);
 
 
