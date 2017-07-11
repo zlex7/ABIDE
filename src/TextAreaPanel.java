@@ -490,6 +490,18 @@ public class TextAreaPanel extends JPanel {
 			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attributeSet)
 					throws BadLocationException {
 
+				String deletedText = d.getText(offset,length);
+
+				boolean areQuotes = false;
+
+				if(deletedText.contains("\"")||text.contains("\"")||text.length()>15){
+
+					areQuotes=true;
+
+					DefaultStyledDocument temp = new DefaultStyledDocument();
+
+					textArea.setDocument(temp);
+				}
 				int originalOff = offset;
 				int originalLength = text.length();
 
@@ -666,7 +678,7 @@ public class TextAreaPanel extends JPanel {
 
 					}
 
-					if(text.contains("\"")){
+					if(areQuotes){
 
               System.out.println("text contains string. searching through file for quotes");
 
@@ -687,9 +699,31 @@ public class TextAreaPanel extends JPanel {
 
              	System.out.println("index: " + index);
 
+             	if(index>=offset){
+
+             		if(count%2==0){
+                            System.out.println("replacing quotes with yellow 1");
+                           //System.out.println("inserted text: " + d.getText(lastIndex,index-lastIndex+1));
+                           System.out.println("index: " + index);
+                           System.out.println("last index: " + lastIndex);
+                           super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
+
+                      		}
+
+
+                     else{
+                     	//System.out.println("making not yellow: " + d.getText(lastIndex+1,index-lastIndex));
+                     	super.replace(fb,lastIndex+1,index-lastIndex-1,d.getText(lastIndex+1,index-lastIndex-1),normalAttributes);	
+                     }
+                     }
+
+
+
+
+             	/*
              		if(index>=offset && index<=offset+length){
 
-											if(count%2==0){
+						if(count%2==0){
                             System.out.println("replacing quotes with yellow 1");
                            System.out.println("inserted text: " + d.getText(lastIndex,index-lastIndex+1));
                            System.out.println("index: " + index);
@@ -706,16 +740,17 @@ public class TextAreaPanel extends JPanel {
 
                               		if(index>0){
                                           System.out.println("replacing quotes with yellow 2");
-                                          super.replace(fb,lastIndex,index-lastIndex,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
+                                          super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
 
                                			}
 
                         				else{
                                         System.out.println("replacing quotes with yellow 3");
-                                        super.replace(fb, lastIndex,d.getLength()-lastIndex,d.getText(lastIndex,d.getLength()-lastIndex+1),styleContext.getStyle("strings"));
+                                        super.replace(fb, lastIndex,d.getLength()-lastIndex+1,d.getText(lastIndex,d.getLength()-lastIndex+1),styleContext.getStyle("strings"));
                    										}
                         			}
                         }
+                        */
                   }
 
             }
@@ -726,6 +761,7 @@ public class TextAreaPanel extends JPanel {
 					catch(InterruptedException e){
 						e.printStackTrace();
 					}*/
+					textArea.setDocument(d);
 					System.out.println("Setting caret position to " + (originalOff + originalLength));
 					textArea.setCaretPosition(originalOff + originalLength);
 					System.out.println("end of update");

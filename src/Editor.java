@@ -534,23 +534,6 @@ public class Editor implements ActionListener {
 		}
 	}
 
-	//calculates number of lines in a textpane
-	public int getLinesTextPane(JTextPane pane){
-
-		int lines = 1;
-
-		//calculates based off number of new lines
-		Pattern p = Pattern.compile("\\\n");
-
-		Matcher m = p.matcher(pane.getText());
-
-		while(m.find()){
-			lines++;
-		}
-
-		return lines;
-	}
-
 
 
 
@@ -559,7 +542,8 @@ public class Editor implements ActionListener {
 
 		JTextPane area = p.getTextArea();
 
-		area.getDocument().addDocumentListener(new DocumentListener() {
+		Document d = area.getDocument();
+		d.addDocumentListener(new DocumentListener() {
 
 			 public void insertUpdate(DocumentEvent e) {
 
@@ -579,9 +563,27 @@ public class Editor implements ActionListener {
 
 
 			 public void changeLines(){
+/*
+			 	int lineNums = 1;
 
-				 lines.drawLineNumbers(getLinesTextPane(area));
-			 }
+			//calculates based off number of new lines
+			Pattern p = Pattern.compile("\\\n");
+			Matcher m  = null;
+			try{
+				m = p.matcher(d.getText(0,d.getLength()));
+			}
+			catch(BadLocationException e){
+				e.printStackTrace();
+			}
+			while(m.find()){
+				lineNums++;
+			}
+
+			System.out.println("updating number of lines to: " + lineNums);
+
+				 lines.drawLineNumbers(lineNums);
+				 */
+			}
 
 
 		});
@@ -1202,8 +1204,6 @@ public class Editor implements ActionListener {
 		System.out.println(fileName);
 		textArea.setFile(file);
 
-		setLineListener(textArea,lineNumbers);
-
 		pane.add(textArea,BorderLayout.CENTER);
 
 		Scroller tab = new Scroller(pane);
@@ -1273,6 +1273,9 @@ public class Editor implements ActionListener {
 				lineNumbers.drawLineNumbers(lines);
 			}
 
+
+			setLineListener(textArea,lineNumbers);
+			
 			setSavedListener(textArea, panel.getTabCount() - 1);
 
 
