@@ -146,6 +146,7 @@ public class Scroller extends JScrollPane{
     private static final int SB_SIZE = 20;
     private static final Color THUMB_COLOR = greyTheme;
 
+		
     public Scroller(Component view) {
         this(view, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
     }

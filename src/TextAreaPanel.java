@@ -52,6 +52,8 @@ public class TextAreaPanel extends JPanel {
 	private Color greyTheme = new Color(128, 129, 135);
 	private Color whiteTheme = new Color(239,237,230);
 
+	private String keywordRegex = "(?<=\\W)[a-z]+(?=\\W)|\".*\"";
+
 
 	public TextAreaPanel(StyleContext styleContext) {
 
@@ -180,6 +182,10 @@ public class TextAreaPanel extends JPanel {
 	//returns either the style associated with a word or null (not a keyword)
 	public String getKeywordStyle(String word) {
 
+		if(word.charAt(0)=='"'){
+
+			return "strings";
+		}
 		for (String key : this.keywords.keySet()) {
 			HashSet<String> words = this.keywords.get(key);
 			if (words.contains(word)) {
@@ -239,7 +245,8 @@ public class TextAreaPanel extends JPanel {
 				}
 			}
 			//regex pattern to find words within the text
-			Pattern p = Pattern.compile("(?<=\\W)[a-z]+(?=\\W)");
+			Pattern p = Pattern.compile(keywordRegex);
+
 			m = p.matcher(text);
 
 			System.out.println("finding keywords: ");
@@ -311,7 +318,7 @@ public class TextAreaPanel extends JPanel {
 					throws BadLocationException {
 
 				//regex pattern to find words within inserted text
-				Pattern p = Pattern.compile("(?<=\\W)[a-z]+(?=\\W)");
+				Pattern p = Pattern.compile(keywordRegex);
 
 				//indexes of where keywords start and end
 				ArrayList<Integer> indexes = new ArrayList<Integer>();
@@ -496,7 +503,6 @@ public class TextAreaPanel extends JPanel {
 				if (tempOffset > 0) {
 					String before = d.getText(offset - 1, 1);
 					System.out.println("before: " + before);
-
 					if (Character.isAlphabetic(before.charAt(0))) {
 						text = before + text;
 						offset--;
@@ -590,7 +596,7 @@ public class TextAreaPanel extends JPanel {
 						}
 					}
 
-					p = Pattern.compile("(?<=\\W)[a-z]+(?=\\W)");
+					p = Pattern.compile(keywordRegex);
 					Matcher m = p.matcher(text);
 
 					System.out.println("finding keywords in replace: ");
@@ -659,6 +665,60 @@ public class TextAreaPanel extends JPanel {
 						super.insertString(fb, offset, text, attributeSet);
 
 					}
+
+					if(text.contains("\"")){
+
+              System.out.println("text contains string. searching through file for quotes");
+
+
+              String allText = d.getText(0,d.getLength());
+              char quote2 = '"';
+
+              int count = 1;
+              int index = allText.indexOf(quote2);
+              int lastIndex = -1;
+              System.out.println("offset: " + offset);
+              System.out.println("offset + length: " + (offset+length));
+              while(index>0){
+
+              lastIndex=index;
+              index=allText.indexOf(quote2,index+1);
+             	count+=1;
+
+             	System.out.println("index: " + index);
+
+             		if(index>=offset && index<=offset+length){
+
+											if(count%2==0){
+                            System.out.println("replacing quotes with yellow 1");
+                           System.out.println("inserted text: " + d.getText(lastIndex,index-lastIndex+1));
+                           System.out.println("index: " + index);
+                           System.out.println("last index: " + lastIndex);
+                           super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
+
+                      		}
+
+                        else{
+
+                              lastIndex=index;
+                               index=allText.indexOf(quote2,index+1);
+                              count+=1;
+
+                              		if(index>0){
+                                          System.out.println("replacing quotes with yellow 2");
+                                          super.replace(fb,lastIndex,index-lastIndex,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
+
+                               			}
+
+                        				else{
+                                        System.out.println("replacing quotes with yellow 3");
+                                        super.replace(fb, lastIndex,d.getLength()-lastIndex,d.getText(lastIndex,d.getLength()-lastIndex+1),styleContext.getStyle("strings"));
+                   										}
+                        			}
+                        }
+                  }
+
+            }
 					//System.out.println("Thread is sleeping");
 					/*try{
 						Thread.sleep(1000);

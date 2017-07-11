@@ -113,6 +113,7 @@ public class Editor implements ActionListener {
 	private static Color pinkWords = new Color(217, 66, 244);
 	private static Color greenWords = new Color(23, 137, 53);
 	private static Color purpleWords = new Color(87, 50, 168);
+	private static Color yellowWords = new Color(198,216,95);
 	//This class listens to the select language menu buttons, and changes active keywords depending on what the user selects
 	class LanguageListener implements ActionListener{
 
@@ -242,18 +243,20 @@ public class Editor implements ActionListener {
 		//StyleConstants.setAlignment(lineNumbers,StyleConstants.ALIGN_RIGHT);
 		Style keywords = styleContext.addStyle("keywords",standard);
 		StyleConstants.setBold(keywords, true);
-		Style access=styleContext.addStyle("access",keywords);
+		Style access = styleContext.addStyle("access",keywords);
 		StyleConstants.setForeground(access, blueWords);
-		Style modifiers=styleContext.addStyle("modifiers",keywords);
+		Style modifiers = styleContext.addStyle("modifiers",keywords);
 		StyleConstants.setForeground(modifiers,pinkWords);
-		Style control=styleContext.addStyle("controlflow",keywords);
+		Style control = styleContext.addStyle("controlflow",keywords);
 		StyleConstants.setForeground(control,greenWords);
-		Style datatypes=styleContext.addStyle("datatypes",keywords);
+		Style datatypes = styleContext.addStyle("datatypes",keywords);
 		StyleConstants.setForeground(datatypes,blueWords);
-		Style errors=styleContext.addStyle("errors",keywords);
+		Style errors = styleContext.addStyle("errors",keywords);
 		StyleConstants.setForeground(errors,blueWords);
-		Style other=styleContext.addStyle("other",keywords);
+		Style other = styleContext.addStyle("other",keywords);
 		StyleConstants.setForeground(other,blueWords);
+		Style strings = styleContext.addStyle("strings",keywords);
+		StyleConstants.setForeground(strings,yellowWords);
 
 		languageListener = new LanguageListener();
 		//runasListener = new RunasListener
