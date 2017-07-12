@@ -114,6 +114,8 @@ public class Editor implements ActionListener {
 	private static Color greenWords = new Color(23, 137, 53);
 	private static Color purpleWords = new Color(87, 50, 168);
 	private static Color yellowWords = new Color(198,216,95);
+	private static Color orangeWords = new Color(229, 161, 36);
+	private static Color redWords = new Color(175, 14, 14);
 	//This class listens to the select language menu buttons, and changes active keywords depending on what the user selects
 	class LanguageListener implements ActionListener{
 
@@ -257,7 +259,10 @@ public class Editor implements ActionListener {
 		StyleConstants.setForeground(other,blueWords);
 		Style strings = styleContext.addStyle("strings",keywords);
 		StyleConstants.setForeground(strings,yellowWords);
-
+		Style classes = styleContext.addStyle("classes",keywords);
+		StyleConstants.setForeground(classes,orangeWords);
+		Style periods = styleContext.addStyle("periods",keywords);
+		StyleConstants.setForeground(periods,redWords);
 		languageListener = new LanguageListener();
 		//runasListener = new RunasListener
 

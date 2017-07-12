@@ -26,6 +26,8 @@ import java.awt.Insets;
 import javax.swing.text.DefaultCaret;
 import java.lang.Thread;
 import java.lang.InterruptedException;
+import java.lang.Character;
+
 //This is the main text area of the editor, where all of the programming happens
 public class TextAreaPanel extends JPanel {
 
@@ -40,7 +42,7 @@ public class TextAreaPanel extends JPanel {
 
 	boolean changed = true;
 	//stores the keywords based on what is passed to it from the editor class
-	HashMap<String, HashSet<String>> keywords = new HashMap<String, HashSet<String>>();
+	HashMap<String, String> keywords = new HashMap<String, String>();
 
 	//the style of TextAreaPanel
 	//most of it is inherited from Editor, but there are some specifics to this class
@@ -52,7 +54,7 @@ public class TextAreaPanel extends JPanel {
 	private Color greyTheme = new Color(128, 129, 135);
 	private Color whiteTheme = new Color(239,237,230);
 
-	private String keywordRegex = "(?<=\\W)[a-z]+(?=\\W)|\".*\"";
+	private String keywordRegex = "[a-zA-Z]+|\".*\"|[.!]";
 
 	private boolean replaceQuotesRecursive = false;
 
@@ -91,14 +93,14 @@ public class TextAreaPanel extends JPanel {
 
 		this(styleContext);
 
-		this.keywords = keywords;
+		setKeywords(keywords);
 	}
 
 	public TextAreaPanel(HashMap<String, HashSet<String>> keywords, StyleContext styleContext, File file) {
 
 		this(styleContext);
 
-		this.keywords = keywords;
+		setKeywords(keywords);
 
 		this.file = file;
 	}
@@ -150,7 +152,12 @@ public class TextAreaPanel extends JPanel {
 	//sets the keywords with a new HashMap<>
 	public void setKeywords(HashMap<String, HashSet<String>> keywords) {
 
-		this.keywords = keywords;
+		for(String key: keywords.keySet()){
+
+			for(String word:keywords.get(key)){
+				this.keywords.put(word,key);
+			}
+		}
 
 		try {
 			updateKeywords();
@@ -174,7 +181,6 @@ public class TextAreaPanel extends JPanel {
 
 		changed = b;
 	}
-
 	public boolean getIsChanged() {
 
 		return changed;
@@ -183,20 +189,35 @@ public class TextAreaPanel extends JPanel {
 	//returns either the style associated with a word or null (not a keyword)
 	public String getKeywordStyle(String word) {
 
-		if(word.charAt(0)=='"'){
+		if(word.length()>0){
 
-			return "strings";
-		}
-		for (String key : this.keywords.keySet()) {
-			HashSet<String> words = this.keywords.get(key);
-			if (words.contains(word)) {
-				return key;
+			char first = word.charAt(0);
+
+			if(first=='"'){
+
+				return "strings";
 			}
 
+			else if(first=='.' || first=='!'){
+
+				return "periods";
+			}
+
+			else if(Character.isUpperCase(first)){
+
+				return "classes";
+			}
+
+			char last = word.charAt(word.length()-1);
+
+			if(last=='('){
+
+				return "periods";
+			}
 		}
 
-		//if not a keyword
-		return null;
+
+		return keywords.get(word);
 	}
 
 	//recolors keywords
@@ -662,7 +683,7 @@ public class TextAreaPanel extends JPanel {
 				if (!text.isEmpty()) {
 
 					int i = 0;
-
+					/*
 					if (Character.isAlphabetic(text.charAt(i))) {
 						i++;
 						while (i < text.length() && Character.isAlphabetic(text.charAt(i))) {
@@ -676,8 +697,11 @@ public class TextAreaPanel extends JPanel {
 						}
 					}
 
+					*/
 					p = Pattern.compile(keywordRegex);
 					Matcher m = p.matcher(text);
+
+					System.out.println("created matcher on text: " + text);
 
 					System.out.println("finding keywords in replace: ");
 
@@ -702,6 +726,7 @@ public class TextAreaPanel extends JPanel {
 
 					int j = text.length() - 1;
 
+					/*
 					if (i < j && Character.isAlphabetic(text.charAt(j))) {
 						j--;
 
@@ -716,6 +741,7 @@ public class TextAreaPanel extends JPanel {
 							indexes.add(text.length());
 						}
 					}
+					*/
 
 					if (!indexes.isEmpty()) {
 						System.out.println("there are keywords");
@@ -730,8 +756,21 @@ public class TextAreaPanel extends JPanel {
 							super.insertString(fb, offset + first, temp, styleContext.getStyle(getKeywordStyle(temp)));
 
 							if (i + 2 < indexes.size()) {
+								try{
 								super.insertString(fb, offset + second, text.substring(second, indexes.get(i + 2)),
 										attributeSet);
+								}
+								catch(Exception e){
+
+
+									e.printStackTrace();
+
+									System.out.println("indexes: " + indexes);
+									System.out.println("i: " + i);
+									System.out.println("leftover text: " + text.substring(second));
+									System.out.println(second);
+									System.out.println(indexes.get(i+2));
+								}
 							}
 						}
 
