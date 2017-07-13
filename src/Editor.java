@@ -263,6 +263,8 @@ public class Editor implements ActionListener {
 		StyleConstants.setForeground(classes,orangeWords);
 		Style periods = styleContext.addStyle("periods",keywords);
 		StyleConstants.setForeground(periods,redWords);
+		Style comments = styleContext.addStyle("comments",keywords);
+		StyleConstants.setForeground(comments,greyTheme);
 		languageListener = new LanguageListener();
 		//runasListener = new RunasListener
 

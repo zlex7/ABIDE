@@ -54,7 +54,7 @@ public class TextAreaPanel extends JPanel {
 	private Color greyTheme = new Color(128, 129, 135);
 	private Color whiteTheme = new Color(239,237,230);
 
-	private String keywordRegex = "[a-zA-Z]+|\".*\"|[.!]";
+	private String keywordRegex = "[a-zA-Z]+|\".*\"|[.!]|//[^\r\n]*|/\\*[\\s\\S]*?(\\*/|\\Z)";
 
 	private boolean replaceQuotesRecursive = false;
 
@@ -189,7 +189,13 @@ public class TextAreaPanel extends JPanel {
 	//returns either the style associated with a word or null (not a keyword)
 	public String getKeywordStyle(String word) {
 
-		if(word.length()>0){
+		int length = word.length();
+		if(length>0){
+
+			/*
+
+				this is a test comment
+			*/
 
 			char first = word.charAt(0);
 
@@ -201,6 +207,17 @@ public class TextAreaPanel extends JPanel {
 			else if(first=='.' || first=='!'){
 
 				return "periods";
+			}
+
+			else if(first=='/'){
+
+				if(length>1){
+					char second = word.charAt(1);
+					if(second=='/' || second=='*'){
+						return "comments";
+					}
+				}
+
 			}
 
 			else if(Character.isUpperCase(first)){
@@ -558,7 +575,7 @@ public class TextAreaPanel extends JPanel {
 
 
 				System.out.println("setting caret to position: " + offset);
-				if(offset<textArea.getDocument().getLength()){
+				if(offset<=textArea.getDocument().getLength()){
 					System.out.println("setting caret to position: " + offset);
 					textArea.setCaretPosition(offset);
 				}
@@ -568,6 +585,8 @@ public class TextAreaPanel extends JPanel {
 			@Override
 			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attributeSet)
 					throws BadLocationException {
+
+				long dlength = d.getLength();
 
 				String deletedText = d.getText(offset,length);
 
@@ -623,7 +642,6 @@ public class TextAreaPanel extends JPanel {
 				System.out.println("hello2");
 
 					if (tempOffset > 0) {
-						if (Character.isAlphabetic(text.charAt(0))) {
 
 							tempOffset--;
 
@@ -631,12 +649,29 @@ public class TextAreaPanel extends JPanel {
 
 							tempOffset -= 1;
 
-							while (tempOffset>=0 && Character.isAlphabetic(sb.charAt(0))) {
+							char sbFirst = sb.charAt(0);
+
+							while (tempOffset>=0 && (Character.isAlphabetic(sbFirst) || sbFirst=='/')) {
 
 
 								sb.insert(0, d.getText(tempOffset, 1));
 
 								tempOffset -= 1;
+
+								sbFirst = sb.charAt(0);
+
+								if(sbFirst == '/'){
+
+									while (offset + length <= dlength - 1
+									&& sbFirst!='\n' ){
+
+										sb.insert(0, d.getText(tempOffset, 1));
+
+										tempOffset -= 1;
+
+										sbFirst = sb.charAt(0);
+									}
+								}
 							}
 
 							sb.deleteCharAt(0);
@@ -646,22 +681,33 @@ public class TextAreaPanel extends JPanel {
 							length += sb.length();
 
 							text = sb.toString() + text;
-
-						}
 					}
 
 					System.out.println("hello3");
 
-					if (offset + length < d.getLength() - 1) {
-						if (Character.isAlphabetic(text.charAt(text.length() - 1))) {
+					if (offset + length < dlength - 1) {
 
 							StringBuilder sb = new StringBuilder(d.getText(offset + length, 1));
-							while (offset + length <= d.getLength() - 1
-									&& Character.isAlphabetic(sb.charAt(sb.length() - 1))) {
+
+							char fbLast = sb.charAt(sb.length()-1);
+
+							while (offset + length <= dlength - 1
+									&& Character.isAlphabetic(fbLast) ){
 
 								length += 1;
 								sb.append(d.getText(offset + length, 1));
+								fbLast=sb.charAt(sb.length()-1);
 
+								if(fbLast == '/'){
+
+									while (offset + length <= dlength - 1
+									&& fbLast!='\n' ){
+
+										length+=1;
+										sb.append(d.getText(offset+length,1));
+										fbLast=sb.charAt(sb.length()-1);
+									}
+								}
 							}
 
 							sb.deleteCharAt(sb.length() - 1);
@@ -669,7 +715,7 @@ public class TextAreaPanel extends JPanel {
 							// sb.deleteCharAt(sb.lastIndexOf("\n"));
 							System.out.println("sb: " + sb.toString());
 							text += sb.toString();
-						}
+
 					}
 
 
