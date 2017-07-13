@@ -54,7 +54,7 @@ public class TextAreaPanel extends JPanel {
 	private Color greyTheme = new Color(128, 129, 135);
 	private Color whiteTheme = new Color(239,237,230);
 
-	private String keywordRegex = "[a-zA-Z]+|\".*\"|[.!]|//[^\r\n]*|/\\*[\\s\\S]*?(\\*/|\\Z)";
+	private String keywordRegex = "[a-zA-Z]+|\".*\"|//[^\r\n]*|/\\*[\\s\\S]*?(\\*/|\\Z)|[-+!.*/=]";
 
 	private boolean replaceQuotesRecursive = false;
 
@@ -204,7 +204,7 @@ public class TextAreaPanel extends JPanel {
 				return "strings";
 			}
 
-			else if(first=='.' || first=='!'){
+			else if(first=='.' || first=='!' || first=='-' || first=='+' || first=='/' || first=='*'  || first=='='){
 
 				return "periods";
 			}
