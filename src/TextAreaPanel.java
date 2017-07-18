@@ -63,6 +63,8 @@ public class TextAreaPanel extends JPanel {
 
 	private Stack<String[]> pastChanges = new Stack<String[]>();
 
+	private Stack<String[]> futureChanges = new Stack<String[]>();
+
 
 	public TextAreaPanel(StyleContext styleContext) {
 
@@ -194,31 +196,67 @@ public class TextAreaPanel extends JPanel {
 
 	public void undo() throws BadLocationException{
 
-		Document d = textArea.getDocument();
+		if(!pastChanges.isEmpty()){
+			Document d = textArea.getDocument();
 
-		String[] lastChange = pastChanges.pop();
+			String[] lastChange = pastChanges.pop();
 
-		String changeType = lastChange[3];
+			futureChanges.push(lastChange);
 
-		String deletedText = lastChange[2];
-		String insertedText = lastChange[1];
+			String changeType = lastChange[3];
 
-		int offset = Integer.parseInt(lastChange[0]);
+			String deletedText = lastChange[2];
+			String insertedText = lastChange[1];
 
-		System.out.println("d: " + d);
+			int offset = Integer.parseInt(lastChange[0]);
 
-		if(changeType.equals("rep")){
+			System.out.println("d: " + d);
 
-			currentUndo=true;
-			d.remove(offset,insertedText.length());
-			d.insertString(offset,deletedText,normalAttributes);
+			if(changeType.equals("rep")){
+
+				currentUndo=true;
+				d.remove(offset,insertedText.length());
+				d.insertString(offset,deletedText,normalAttributes);
 
 
+			}
+
+			else{
+				currentUndo=true;
+				d.insertString(offset,deletedText,normalAttributes);
+			}
 		}
+	}
 
-		else{
-			currentUndo=true;
-			d.insertString(offset,deletedText,normalAttributes);
+	public void redo() throws BadLocationException{
+
+	if(!futureChanges.isEmpty()){
+	
+			Document d = textArea.getDocument();
+
+			String[] lastChange = futureChanges.pop();
+
+
+			String changeType = lastChange[3];
+
+			String deletedText = lastChange[2];
+			String insertedText = lastChange[1];
+
+			int offset = Integer.parseInt(lastChange[0]);
+
+
+			if(changeType.equals("rep")){
+
+				d.remove(offset,deletedText.length());
+				d.insertString(offset,insertedText,normalAttributes);
+
+
+			}
+
+			else{
+				d.remove(offset,deletedText.length());
+			}
+
 		}
 	}
 
@@ -401,6 +439,7 @@ public class TextAreaPanel extends JPanel {
 			public void insertString(FilterBypass fb, int offset, String text, AttributeSet attributeSet)
 					throws BadLocationException {
 
+			int length = text.length();
 			
 			if(currentUndo){
 
@@ -479,6 +518,8 @@ public class TextAreaPanel extends JPanel {
 					}
 
 					}
+
+				textArea.setCaretPosition(offset+length);
 				}
 
 			}

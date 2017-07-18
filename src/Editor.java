@@ -69,7 +69,7 @@ public class Editor implements ActionListener {
 
 	//These are menu items
 	String[] fileItems = { "New", "Open", "Save", "Save as", "Close", "Exit" };
-	String[] editItems = { "Cut", "Copy", "Paste", "Undo" };
+	String[] editItems = { "Cut", "Copy", "Paste", "Undo", "Redo" };
 	String[] viewItems = {};
 	String[] runItems = {"Run"};
 	String[] runasItems = {"Java"};
@@ -640,6 +640,10 @@ public class Editor implements ActionListener {
 
 			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z,ActionEvent.CTRL_MASK));
 			break;
+		case "Redo":
+
+			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y,ActionEvent.CTRL_MASK));
+			break;
 		case "Close":
 
 			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,ActionEvent.ALT_MASK));
@@ -704,6 +708,10 @@ public class Editor implements ActionListener {
 			case "Undo":
 
 				handleUndo();
+				break;
+			case "Redo":
+
+				handleRedo();
 				break;
 			case "Close":
 
@@ -1191,6 +1199,20 @@ public class Editor implements ActionListener {
 			e.printStackTrace();
 		}
 	}
+
+	public void handleRedo(){
+
+
+		TextAreaPanel currentText = ((Scroller)panel.getSelectedComponent()).getTextArea();
+
+		try{
+			currentText.redo();
+		}
+		catch(BadLocationException e){
+			e.printStackTrace();
+		}
+	}
+
 
 
 
