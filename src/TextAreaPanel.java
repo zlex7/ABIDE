@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Stack;
 
 import javax.swing.Action;
 import javax.swing.JPanel;
@@ -57,6 +58,11 @@ public class TextAreaPanel extends JPanel {
 	private String keywordRegex = "[a-zA-Z]+|\".*\"|//[^\r\n]*|/\\*[\\s\\S]*?(\\*/|\\Z)|[-+!.*/=]";
 
 	private boolean replaceQuotesRecursive = false;
+
+	private boolean currentUndo = false;
+
+	private Stack<String[]> pastChanges = new Stack<String[]>();
+
 
 	public TextAreaPanel(StyleContext styleContext) {
 
@@ -186,6 +192,36 @@ public class TextAreaPanel extends JPanel {
 		return changed;
 	}
 
+	public void undo() throws BadLocationException{
+
+		Document d = textArea.getDocument();
+
+		String[] lastChange = pastChanges.pop();
+
+		String changeType = lastChange[3];
+
+		String deletedText = lastChange[2];
+		String insertedText = lastChange[1];
+
+		int offset = Integer.parseInt(lastChange[0]);
+
+		System.out.println("d: " + d);
+
+		if(changeType.equals("rep")){
+
+			currentUndo=true;
+			d.remove(offset,insertedText.length());
+			d.insertString(offset,deletedText,normalAttributes);
+
+
+		}
+
+		else{
+			currentUndo=true;
+			d.insertString(offset,deletedText,normalAttributes);
+		}
+	}
+
 	//returns either the style associated with a word or null (not a keyword)
 	public String getKeywordStyle(String word) {
 
@@ -204,7 +240,7 @@ public class TextAreaPanel extends JPanel {
 				return "strings";
 			}
 
-			else if(first=='.' || first=='!' || first=='-' || first=='+' || first=='/' || first=='*'  || first=='='){
+			else if(first=='.' || first=='!' || first=='-' || first=='+' || first=='*'  || first=='='){
 
 				return "periods";
 			}
@@ -216,6 +252,11 @@ public class TextAreaPanel extends JPanel {
 					if(second=='/' || second=='*'){
 						return "comments";
 					}
+				}
+
+				else{
+
+					return "periods";
 				}
 
 			}
@@ -279,6 +320,7 @@ public class TextAreaPanel extends JPanel {
 				System.out.println("word: " + word);
 				String style = getKeywordStyle(word);
 				if (style != null) {
+					currentUndo = true;
 					d.remove(0, i);
 					d.insertString(0, word, styleContext.getStyle(style));
 				}
@@ -303,6 +345,7 @@ public class TextAreaPanel extends JPanel {
 				if (style != null) {
 					int start = m.start();
 					System.out.println("start: " + start);
+					currentUndo = true;
 					d.remove(start, word.length());
 					d.insertString(start, word, styleContext.getStyle(style));
 				}
@@ -323,11 +366,13 @@ public class TextAreaPanel extends JPanel {
 					String style = getKeywordStyle(word);
 					if (style != null) {
 						//removes and then inserts the string with the correct style
+						currentUndo = true;
 						d.remove(i, word.length());
 						d.insertString(i, word, styleContext.getStyle(style));
 					}
 
 					else{
+						currentUndo = true;
 						d.remove(i,word.length());
 						d.insertString(i, word, styleContext.getStyle("standard"));
 					}
@@ -356,6 +401,13 @@ public class TextAreaPanel extends JPanel {
 			public void insertString(FilterBypass fb, int offset, String text, AttributeSet attributeSet)
 					throws BadLocationException {
 
+			
+			if(currentUndo){
+
+				d.replace(offset,0,text,attributeSet);
+			}			
+
+			else{
 				//regex pattern to find words within inserted text
 				Pattern p = Pattern.compile(keywordRegex);
 
@@ -426,6 +478,7 @@ public class TextAreaPanel extends JPanel {
 
 					}
 
+					}
 				}
 
 			}
@@ -433,7 +486,24 @@ public class TextAreaPanel extends JPanel {
 			@Override
 			public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
 
+			
+
 				String deletedText = d.getText(offset,length);
+
+				if(!currentUndo){
+					String[] changedAttributes = new String[4];
+					changedAttributes[0] = Integer.toString(offset);
+					changedAttributes[1] = Integer.toString(length);
+					changedAttributes[2] = deletedText;
+					changedAttributes[3] = "rem";
+
+					pastChanges.push(changedAttributes);
+				}
+				else{
+
+					currentUndo = false;
+				}
+
 				boolean areQuotes=false;
 
 				if(deletedText.contains("\"")){
@@ -444,6 +514,7 @@ public class TextAreaPanel extends JPanel {
 
 					textArea.setDocument(temp);
 				}
+
 				super.remove(fb, offset, length);
 
 				System.out.println("running remove with offset: " + offset + " and length: " + length);
@@ -582,17 +653,37 @@ public class TextAreaPanel extends JPanel {
 
 			}
 
-			@Override
-			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attributeSet)
+		@Override
+		public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attributeSet)
 					throws BadLocationException {
+
+			
 
 				long dlength = d.getLength();
 
 				String deletedText = d.getText(offset,length);
 
+		
+
 				boolean areQuotes = false;
 
 				if(!replaceQuotesRecursive){
+
+					if(!currentUndo){
+						String[] changedAttributes = new String[4];
+
+						changedAttributes[0] = Integer.toString(offset);
+						changedAttributes[1] = text;
+						changedAttributes[2] = deletedText;
+						changedAttributes[3] = "rep";	
+
+						pastChanges.push(changedAttributes);	
+					}
+
+					else{
+						currentUndo=false;
+					}
+
 					if(deletedText.contains("\"")||text.contains("\"")||text.length()>15){
 
 						areQuotes=true;

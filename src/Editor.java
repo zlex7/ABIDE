@@ -635,6 +635,11 @@ public class Editor implements ActionListener {
 
 			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V,ActionEvent.CTRL_MASK));
 			break;
+
+		case "Undo":
+
+			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z,ActionEvent.CTRL_MASK));
+			break;
 		case "Close":
 
 			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,ActionEvent.ALT_MASK));
@@ -1177,7 +1182,14 @@ public class Editor implements ActionListener {
 	public void handleUndo(){
 
 
+		TextAreaPanel currentText = ((Scroller)panel.getSelectedComponent()).getTextArea();
 
+		try{
+			currentText.undo();
+		}
+		catch(BadLocationException e){
+			e.printStackTrace();
+		}
 	}
 
 
