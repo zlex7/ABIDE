@@ -24,6 +24,8 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Stack;
+import java.util.LinkedList;
+import java.util.ListIterator;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -83,15 +85,20 @@ public class Editor implements ActionListener {
 	private LanguageListener languageListener;
 	//listener to compile and run programs within the editor
 	private RunasListener runasListener;
+
+	private FileOpenListener fileOpenListener;
 	//HashMap containing al the keywords for every language
 	//Outer String is the language, inner string is the section of keywords, and HashSet actually contains the keywords
 	private HashMap<String,HashMap<String,HashSet<String>>> keywords = new HashMap<String,HashMap<String,HashSet<String>>>();
 	//variable to hold copied text
+	
+	private LinkedList<String> recentFiles = new LinkedList<String>();
 	private String copiedText;
 	//variable to keep color when copying text
 	private Color copiedColor;
 
 	private Stack<String[]> pastChanges = new Stack<String[]>();
+
 	//editor settings
 	private String fontName = "monospaced";
 	private int fontSize = 22;
@@ -265,7 +272,11 @@ public class Editor implements ActionListener {
 		StyleConstants.setForeground(periods,redWords);
 		Style comments = styleContext.addStyle("comments",keywords);
 		StyleConstants.setForeground(comments,greyTheme);
+
+
+
 		languageListener = new LanguageListener();
+		fileOpenListener = new FileOpenListener();
 		//runasListener = new RunasListener
 
 	}
@@ -288,6 +299,8 @@ public class Editor implements ActionListener {
 
 		System.out.println(keywords);
 
+		parseRecentFiles(new File("recent.txt"));
+
 		//the outer window
 		frame = new JFrame("Text Editor");
 
@@ -295,7 +308,21 @@ public class Editor implements ActionListener {
 
 		frame.setIconImage(JT.getImage());
 
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+		frame.addWindowListener(new java.awt.event.WindowAdapter() {
+   		 	@Override
+   		 	public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+
+        		if (JOptionPane.showConfirmDialog(frame, 
+            	"Are you sure to close this window?", "Really Closing?", 
+            	JOptionPane.YES_NO_OPTION,
+            	JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+            	frame.dispose();
+           	 	System.exit(0);
+       		 	}
+    		}
+		});
 
 		//the outer contentPane
 		panel = new JTabbedPane();
@@ -315,6 +342,17 @@ public class Editor implements ActionListener {
 
 		JMenu fileMenu = new EditorMenu("<html><p style='margin-top:0px;'>File");
 
+		JMenu openasMenu = new EditorMenu("Open As");
+
+		ListIterator<String> it = recentFiles.listIterator(recentFiles.size());
+
+		while (it.hasPrevious()){
+			JMenuItem item = new JMenuItem(it.previous());
+			item.addActionListener(fileOpenListener);
+			openasMenu.add(item);
+		}
+
+
 
 		for (String s : fileItems) {
 
@@ -323,7 +361,16 @@ public class Editor implements ActionListener {
 			item.addActionListener(this);
 			fileMenu.add(item);
 
+			if(s.equals("Open")){
+
+				fileMenu.add(openasMenu);
+			}
+
 		}
+
+
+
+
 
 		JMenu editMenu = new EditorMenu("<html><p style='margin-top:0px;'>Edit");
 
@@ -467,80 +514,107 @@ public class Editor implements ActionListener {
 
 	public void parseKeywords(File f) throws IOException{
 
-		BufferedReader reader = new BufferedReader(new FileReader(f));
+		if(f.exists()){
+			BufferedReader reader = new BufferedReader(new FileReader(f));
 
-		StringBuilder builder = new StringBuilder("");
-		String next;
+			StringBuilder builder = new StringBuilder("");
+			String next;
 
-		while((next = reader.readLine()) != null){
-			builder.append(next).append(System.lineSeparator());
-		}
-
-		String text = builder.toString();
-
-		//pattern to find the extension and language within the keywords.txt file
-		Pattern p = Pattern.compile("(?<=\\[)\\S+ \\.\\S+(?=\\])");
-
-		ArrayList<String> languages = new ArrayList<String>();
-
-		Matcher m = p.matcher(text);
-
-		//finding each language section
-		while(m.find()){
-			System.out.println("found");
-			String[] language = m.group().split(" ");
-			System.out.println(language);
-			languages.add(language[0]);
-			extToLang.put(language[1].substring(1), language[0]);
-			heldLanguages.add(language[1].substring(1));
-		}
-
-		String[] sections = text.split("\\s*\\[\\S+ \\.\\S+\\]\\s*");
-
-		System.out.println(Arrays.toString(sections));
-
-		System.out.println("first element : " +sections[0]);
-
-
-		p=Pattern.compile("--[a-zA-Z]+");
-
-		for(int i =0;i<languages.size();i++){
-
-			String textTemp = sections[i+1].trim();
-			String[] keywordSections = textTemp.split("--[a-zA-Z]+");
-
-			m = p.matcher(textTemp);
-
-			System.out.println("textTemp: " + textTemp);
-			System.out.println("-----");
-			System.out.println(Arrays.toString(keywordSections));
-
-			HashMap<String,HashSet<String>> tempMap = new HashMap<String,HashSet<String>>();
-			for(int j=1;j<keywordSections.length;j++){
-
-				String[] keywords = keywordSections[j].split("\\s+");
-
-				System.out.println("keywords: " + Arrays.toString(keywords));
-
-
-				HashSet<String> temp = new HashSet<String>();
-				for(String keyword: keywords){
-
-					temp.add(keyword);
-				}
-				if(m.find()){
-					tempMap.put(m.group().substring(2),temp);
-				}
-				else{
-					throw new IOException("keywords.txt format is incorrect");
-				}
+			while((next = reader.readLine()) != null){
+				builder.append(next).append(System.lineSeparator());
 			}
 
-			//actually putting language with keywords into HashMap<>
-			this.keywords.put(languages.get(i), tempMap);
+			String text = builder.toString();
+
+			//pattern to find the extension and language within the keywords.txt file
+			Pattern p = Pattern.compile("(?<=\\[)\\S+ \\.\\S+(?=\\])");
+
+			ArrayList<String> languages = new ArrayList<String>();
+
+			Matcher m = p.matcher(text);
+
+			//finding each language section
+			while(m.find()){
+				System.out.println("found");
+				String[] language = m.group().split(" ");
+				System.out.println(language);
+				languages.add(language[0]);
+				extToLang.put(language[1].substring(1), language[0]);
+				heldLanguages.add(language[1].substring(1));
+			}
+
+			String[] sections = text.split("\\s*\\[\\S+ \\.\\S+\\]\\s*");
+
+			System.out.println(Arrays.toString(sections));
+
+			System.out.println("first element : " +sections[0]);
+
+
+			p=Pattern.compile("--[a-zA-Z]+");
+
+			for(int i =0;i<languages.size();i++){
+
+				String textTemp = sections[i+1].trim();
+				String[] keywordSections = textTemp.split("--[a-zA-Z]+");
+
+				m = p.matcher(textTemp);
+
+				System.out.println("textTemp: " + textTemp);
+				System.out.println("-----");
+				System.out.println(Arrays.toString(keywordSections));
+
+				HashMap<String,HashSet<String>> tempMap = new HashMap<String,HashSet<String>>();
+				for(int j=1;j<keywordSections.length;j++){
+
+					String[] keywords = keywordSections[j].split("\\s+");
+
+					System.out.println("keywords: " + Arrays.toString(keywords));
+
+
+					HashSet<String> temp = new HashSet<String>();
+					for(String keyword: keywords){
+
+						temp.add(keyword);
+					}
+					if(m.find()){
+						tempMap.put(m.group().substring(2),temp);
+					}
+					else{
+						throw new IOException("keywords.txt format is incorrect");
+					}
+				}
+
+				//actually putting language with keywords into HashMap<>
+				this.keywords.put(languages.get(i), tempMap);
+			}
+		}
+		else{
+
+			f.createNewFile();
 		}
 	}
 
+
+	public void parseRecentFiles(File f) throws IOException{
+
+		if(f.exists()){
+
+			BufferedReader reader = new BufferedReader(new FileReader(f));
+
+			String next;
+
+			while((next = reader.readLine()) != null){
+			System.out.println("recent file: " + next);
+			recentFiles.add(next);
+			}
+		}
+
+		else{
+
+			f.createNewFile();
+
+		}
+	}
 
 
 
@@ -550,6 +624,7 @@ public class Editor implements ActionListener {
 		JTextPane area = p.getTextArea();
 
 		Document d = area.getDocument();
+
 		d.addDocumentListener(new DocumentListener() {
 
 			 public void insertUpdate(DocumentEvent e) {
@@ -570,8 +645,8 @@ public class Editor implements ActionListener {
 
 
 			 public void changeLines(){
-/*
-			 	int lineNums = 1;
+
+			 int lineNums = 1;
 
 			//calculates based off number of new lines
 			Pattern p = Pattern.compile("\\\n");
@@ -586,16 +661,31 @@ public class Editor implements ActionListener {
 				lineNums++;
 			}
 
-			System.out.println("updating number of lines to: " + lineNums);
+			//System.out.println("updating number of lines to: " + lineNums);
 
-				 lines.drawLineNumbers(lineNums);
-				 */
+			lines.updateLineNumbers(lineNums);
+				 
 			}
 
 
 		});
 	}
 
+	class FileOpenListener implements ActionListener{
+		
+		public void actionPerformed(ActionEvent e){
+ 	
+ 			JMenu source = (JMenu)e.getSource();
+
+ 			String filePath = source.getText();
+
+ 			openFile(new File(filePath));
+ 			
+
+
+		}
+
+	}
 	//this handles creating shortcuts for the menu items
 	public void setKeyMnemonic(JMenuItem item) {
 
@@ -661,7 +751,7 @@ public class Editor implements ActionListener {
 	}
 
 	//handles the most important menu items
-	public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent e){
 
 		if (e.getSource() instanceof JMenuItem) {
 
@@ -796,7 +886,10 @@ public class Editor implements ActionListener {
 
 		if (returned == JFileChooser.APPROVE_OPTION) {
 
-			openFile(fileChooser.getSelectedFile());
+			File chosenFile = fileChooser.getSelectedFile();
+
+			recentFiles.add(chosenFile.getAbsolutePath());
+			openFile(chosenFile);
 		}
 
 		else if (returned == JFileChooser.CANCEL_OPTION) {
@@ -831,6 +924,8 @@ public class Editor implements ActionListener {
 				if (returned == JFileChooser.APPROVE_OPTION) {
 
 					File file = fileChooser.getSelectedFile();
+
+					recentFiles.add(file.getAbsolutePath());
 
 					//String fileExtension = file.getName().split("\\.")
 
@@ -989,6 +1084,8 @@ public class Editor implements ActionListener {
 				if (returned == JFileChooser.APPROVE_OPTION) {
 
 				File file = fileChooser.getSelectedFile();
+
+				recentFiles.add(file.getAbsolutePath());
 
 
 				if (file.exists()) {
@@ -1187,30 +1284,49 @@ public class Editor implements ActionListener {
 		}
 	}
 
-	public void handleUndo(){
+	public void handleUndo() {
+
+
+				long start = System.currentTimeMillis();
 
 
 		TextAreaPanel currentText = ((Scroller)panel.getSelectedComponent()).getTextArea();
+
+
+
 
 		try{
 			currentText.undo();
 		}
-		catch(BadLocationException e){
+		catch(Exception e){
+
 			e.printStackTrace();
 		}
+		
+		long stop = System.currentTimeMillis();
+
+		System.out.println("handleUndo took : " + (stop-start) + " milliseconds.");
 	}
 
-	public void handleRedo(){
+	public void handleRedo() {
+
+			long start = System.currentTimeMillis();
 
 
 		TextAreaPanel currentText = ((Scroller)panel.getSelectedComponent()).getTextArea();
 
+
 		try{
 			currentText.redo();
 		}
-		catch(BadLocationException e){
+		catch(Exception e){
 			e.printStackTrace();
 		}
+
+
+		long stop = System.currentTimeMillis();
+
+		System.out.println("handleRedo took : " + (stop-start) + " milliseconds.");
 	}
 
 

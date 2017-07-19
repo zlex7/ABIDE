@@ -65,12 +65,14 @@ public class TextAreaPanel extends JPanel {
 
 	private Stack<String[]> futureChanges = new Stack<String[]>();
 
+	Document d;
+
 
 	public TextAreaPanel(StyleContext styleContext) {
 
 		setLayout(new BorderLayout());
 
-		Document d = textArea.getDocument();
+		d = textArea.getDocument();
 
 		add(textArea);
 
@@ -196,8 +198,11 @@ public class TextAreaPanel extends JPanel {
 
 	public void undo() throws BadLocationException{
 
+		System.out.println("running undo");
+
 		if(!pastChanges.isEmpty()){
-			Document d = textArea.getDocument();
+			
+			//Document d = textArea.getDocument();
 
 			String[] lastChange = pastChanges.pop();
 
@@ -210,32 +215,41 @@ public class TextAreaPanel extends JPanel {
 
 			int offset = Integer.parseInt(lastChange[0]);
 
-			System.out.println("d: " + d);
+			//long start = System.currentTimeMillis();
 
 			if(changeType.equals("rep")){
 
 				currentUndo=true;
-				d.remove(offset,insertedText.length());
-				d.insertString(offset,deletedText,normalAttributes);
+				this.d.remove(offset,insertedText.length());
+				this.d.insertString(offset,deletedText,normalAttributes);
 
 
 			}
 
 			else{
 				currentUndo=true;
-				d.insertString(offset,deletedText,normalAttributes);
+				this.d.insertString(offset,deletedText,normalAttributes);
 			}
+
+			///long stop = System.currentTimeMillis();
+
+			//System.out.println("undo took : " + (stop-start) + " milliseconds.");
+
 		}
+
 	}
 
 	public void redo() throws BadLocationException{
 
-	if(!futureChanges.isEmpty()){
+		System.out.println("running undo");
+
+		if(!futureChanges.isEmpty()){
 	
-			Document d = textArea.getDocument();
+			//Document d = textArea.getDocument();
 
 			String[] lastChange = futureChanges.pop();
 
+			pastChanges.push(lastChange);
 
 			String changeType = lastChange[3];
 
@@ -244,18 +258,23 @@ public class TextAreaPanel extends JPanel {
 
 			int offset = Integer.parseInt(lastChange[0]);
 
+			//long start = System.currentTimeMillis();
 
 			if(changeType.equals("rep")){
 
-				d.remove(offset,deletedText.length());
-				d.insertString(offset,insertedText,normalAttributes);
+				this.d.remove(offset,deletedText.length());
+				this.d.insertString(offset,insertedText,normalAttributes);
 
 
 			}
 
 			else{
-				d.remove(offset,deletedText.length());
+				this.d.remove(offset,deletedText.length());
 			}
+
+			//long stop = System.currentTimeMillis();
+
+			//System.out.println("undo took : " + (stop-start) + " milliseconds.");
 
 		}
 	}
