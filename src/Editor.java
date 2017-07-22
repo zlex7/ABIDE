@@ -15,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Stack;
 import java.util.LinkedList;
-import java.util.ListIterator;
+import java.util.Iterator;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -72,7 +73,7 @@ public class Editor implements ActionListener {
 	//These are menu items
 	String[] fileItems = { "New", "Open", "Save", "Save as", "Close", "Exit" };
 	String[] editItems = { "Cut", "Copy", "Paste", "Undo", "Redo" };
-	String[] viewItems = {};
+	String[] viewItems = {"Find/Replace"};
 	String[] runItems = {"Run"};
 	String[] runasItems = {"Java"};
 	String[] preferenceItems = {"Settings"};
@@ -91,8 +92,8 @@ public class Editor implements ActionListener {
 	//Outer String is the language, inner string is the section of keywords, and HashSet actually contains the keywords
 	private HashMap<String,HashMap<String,HashSet<String>>> keywords = new HashMap<String,HashMap<String,HashSet<String>>>();
 	//variable to hold copied text
-	
-	private LinkedList<String> recentFiles = new LinkedList<String>();
+
+	private Stack<String> recentFiles = new Stack<String>();
 	private String copiedText;
 	//variable to keep color when copying text
 	private Color copiedColor;
@@ -295,16 +296,16 @@ public class Editor implements ActionListener {
 	public void runGraphics() throws IOException {
 
 
-		parseKeywords(new File("keywords.txt"));
+		parseKeywords(new File("../keywords.txt"));
 
 		System.out.println(keywords);
 
-		parseRecentFiles(new File("recent.txt"));
+		parseRecentFiles(new File("../recent.txt"));
 
 		//the outer window
 		frame = new JFrame("Text Editor");
 
-		ImageIcon JT = new ImageIcon("images/JT.png");
+		ImageIcon JT = new ImageIcon("../images/JT.png");
 
 		frame.setIconImage(JT.getImage());
 
@@ -314,10 +315,51 @@ public class Editor implements ActionListener {
    		 	@Override
    		 	public void windowClosing(java.awt.event.WindowEvent windowEvent) {
 
-        		if (JOptionPane.showConfirmDialog(frame, 
-            	"Are you sure to close this window?", "Really Closing?", 
+        		if (JOptionPane.showConfirmDialog(frame,
+            	"Are you sure you want to close this window?", "Really Closing?",
             	JOptionPane.YES_NO_OPTION,
             	JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+
+							PrintWriter recentWriter = null;
+
+							try{
+
+								recentWriter = new PrintWriter(new File("../recent.txt"));
+							} catch(FileNotFoundException e){
+
+								e.printStackTrace();
+
+								System.out.println("recent.txt was deleted");
+
+							}
+							String[] files = new String[recentFiles.size()];
+
+							int i=files.length-1;
+
+							while(!recentFiles.isEmpty()){
+
+								files[i] = recentFiles.pop();
+								i--;
+							}
+
+							for(i=0;i<files.length;i++){
+
+
+								if(i!=files.length-1){
+
+									recentWriter.println(files[i]);
+
+								}
+
+								else{
+
+									recentWriter.print(files[i]);
+
+								}
+							}
+
+							recentWriter.close();
+
             	frame.dispose();
            	 	System.exit(0);
        		 	}
@@ -342,16 +384,15 @@ public class Editor implements ActionListener {
 
 		JMenu fileMenu = new EditorMenu("<html><p style='margin-top:0px;'>File");
 
-		JMenu openasMenu = new EditorMenu("Open As");
+		JMenu openasMenu = new EditorMenu("Open Recent");
 
-		ListIterator<String> it = recentFiles.listIterator(recentFiles.size());
+	  Iterator<String> it = recentFiles.iterator();
 
-		while (it.hasPrevious()){
-			JMenuItem item = new JMenuItem(it.previous());
+		while (it.hasNext()){
+			JMenuItem item = new JMenuItem(it.next());
 			item.addActionListener(fileOpenListener);
 			openasMenu.add(item);
 		}
-
 
 
 		for (String s : fileItems) {
@@ -604,9 +645,11 @@ public class Editor implements ActionListener {
 			String next;
 
 			while((next = reader.readLine()) != null){
-			System.out.println("recent file: " + next);
-			recentFiles.add(next);
-			}
+
+					System.out.println("recent file: " + next);
+					recentFiles.push(next);
+
+				}
 		}
 
 		else{
@@ -664,7 +707,7 @@ public class Editor implements ActionListener {
 			//System.out.println("updating number of lines to: " + lineNums);
 
 			lines.updateLineNumbers(lineNums);
-				 
+
 			}
 
 
@@ -672,15 +715,14 @@ public class Editor implements ActionListener {
 	}
 
 	class FileOpenListener implements ActionListener{
-		
+
 		public void actionPerformed(ActionEvent e){
- 	
- 			JMenu source = (JMenu)e.getSource();
+
+ 			JMenuItem source = (JMenuItem)e.getSource();
 
  			String filePath = source.getText();
 
  			openFile(new File(filePath));
- 			
 
 
 		}
@@ -720,6 +762,10 @@ public class Editor implements ActionListener {
 		case "Copy":
 
 			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,ActionEvent.CTRL_MASK));
+			break;
+		case "Find/Replace":
+
+			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,ActionEvent.CTRL_MASK));
 			break;
 		case "Paste":
 
@@ -802,6 +848,10 @@ public class Editor implements ActionListener {
 			case "Redo":
 
 				handleRedo();
+				break;
+			case "Find/Replace":
+
+				handleFind();
 				break;
 			case "Close":
 
@@ -1302,7 +1352,7 @@ public class Editor implements ActionListener {
 
 			e.printStackTrace();
 		}
-		
+
 		long stop = System.currentTimeMillis();
 
 		System.out.println("handleUndo took : " + (stop-start) + " milliseconds.");
@@ -1450,6 +1500,16 @@ public class Editor implements ActionListener {
 		}
 	}
 
+
+	public void handleFind(){
+
+		TextAreaPanel currentArea = ((Scroller)panel.getSelectedComponent()).getTextArea();
+
+		String sentence = JOptionPane.showInputDialog(frame,"Enter word to find: ",null);
+
+		currentArea.highlight(sentence);
+
+	}
 
 	//TODO: May handle running programs. That may be the job of RunasListener Instead.
 	public void handleRun(){

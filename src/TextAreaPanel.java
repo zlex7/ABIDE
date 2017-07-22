@@ -16,6 +16,8 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.SimpleAttributeSet;
@@ -55,6 +57,9 @@ public class TextAreaPanel extends JPanel {
 	private Color greyTheme = new Color(128, 129, 135);
 	private Color whiteTheme = new Color(239,237,230);
 
+	private DefaultHighlighter highlighter = new DefaultHighlighter();
+	private DefaultHighlightPainter highlightPainter;
+
 	private String keywordRegex = "[a-zA-Z]+|\".*\"|//[^\r\n]*|/\\*[\\s\\S]*?(\\*/|\\Z)|[-+!.*/=]";
 
 	private boolean replaceQuotesRecursive = false;
@@ -70,9 +75,13 @@ public class TextAreaPanel extends JPanel {
 
 	public TextAreaPanel(StyleContext styleContext) {
 
+		highlightPainter = new DefaultHighlightPainter(greyTheme);
+
 		setLayout(new BorderLayout());
 
 		d = textArea.getDocument();
+
+		textArea.setHighlighter(highlighter);
 
 		add(textArea);
 
@@ -196,12 +205,36 @@ public class TextAreaPanel extends JPanel {
 		return changed;
 	}
 
+	public void highlight(String sentence){
+
+		try{
+			String text = d.getText(0,d.getLength());
+
+			highlighter.removeAllHighlights();
+
+			int length = sentence.length();
+
+			int index=0;
+
+			while((index=text.indexOf(sentence,index)) > -1){
+
+				highlighter.addHighlight(index,index+length,highlightPainter);
+				index+=length;
+
+			}
+
+		}catch(BadLocationException e){
+
+			e.printStackTrace();
+		}
+	}
+
 	public void undo() throws BadLocationException{
 
 		System.out.println("running undo");
 
 		if(!pastChanges.isEmpty()){
-			
+
 			//Document d = textArea.getDocument();
 
 			String[] lastChange = pastChanges.pop();
@@ -244,7 +277,7 @@ public class TextAreaPanel extends JPanel {
 		System.out.println("running undo");
 
 		if(!futureChanges.isEmpty()){
-	
+
 			//Document d = textArea.getDocument();
 
 			String[] lastChange = futureChanges.pop();
@@ -459,11 +492,11 @@ public class TextAreaPanel extends JPanel {
 					throws BadLocationException {
 
 			int length = text.length();
-			
+
 			if(currentUndo){
 
 				d.replace(offset,0,text,attributeSet);
-			}			
+			}
 
 			else{
 				//regex pattern to find words within inserted text
@@ -546,7 +579,7 @@ public class TextAreaPanel extends JPanel {
 			@Override
 			public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
 
-			
+
 
 				String deletedText = d.getText(offset,length);
 
@@ -693,7 +726,7 @@ public class TextAreaPanel extends JPanel {
 
                      	replaceQuotesRecursive = true;
                      	System.out.println("recursively replacing text : \"" + d.getText(lastIndex+1,index-lastIndex-1)+"\"" );
-                     	d.replace(lastIndex+1,index-lastIndex-1,d.getText(lastIndex+1,index-lastIndex-1),normalAttributes);	
+                     	d.replace(lastIndex+1,index-lastIndex-1,d.getText(lastIndex+1,index-lastIndex-1),normalAttributes);
                      }
                   }
 
@@ -717,13 +750,13 @@ public class TextAreaPanel extends JPanel {
 		public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attributeSet)
 					throws BadLocationException {
 
-			
+
 
 				long dlength = d.getLength();
 
 				String deletedText = d.getText(offset,length);
 
-		
+
 
 				boolean areQuotes = false;
 
@@ -735,9 +768,9 @@ public class TextAreaPanel extends JPanel {
 						changedAttributes[0] = Integer.toString(offset);
 						changedAttributes[1] = text;
 						changedAttributes[2] = deletedText;
-						changedAttributes[3] = "rep";	
+						changedAttributes[3] = "rep";
 
-						pastChanges.push(changedAttributes);	
+						pastChanges.push(changedAttributes);
 					}
 
 					else{
@@ -1023,7 +1056,7 @@ public class TextAreaPanel extends JPanel {
 
                      	replaceQuotesRecursive = true;
                      	System.out.println("recursively replacing text : \"" + d.getText(lastIndex+1,index-lastIndex-1)+"\"" );
-                     	d.replace(lastIndex+1,index-lastIndex-1,d.getText(lastIndex+1,index-lastIndex-1),normalAttributes);	
+                     	d.replace(lastIndex+1,index-lastIndex-1,d.getText(lastIndex+1,index-lastIndex-1),normalAttributes);
                      }
                   }
 
