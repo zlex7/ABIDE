@@ -9,6 +9,9 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import  java.awt.GridBagConstraints;
+import  java.awt.GridBagLayout;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,6 +40,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextPane;
+import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -914,7 +919,32 @@ public class Editor implements ActionListener {
 
 		Scroller tab = new Scroller(pane);
 
-		panel.addTab("new " + (panel.getTabCount() + 1) + ".txt", tab);
+		String title = "new " + (panel.getTabCount() + 1) + ".txt  ";
+
+		panel.addTab(title, tab);
+
+		int index = panel.getTabCount()-1;
+
+		JPanel pnlTab = new JPanel(new BorderLayout());
+		pnlTab.setOpaque(false);
+		pnlTab.setBorder(BorderFactory.createEmptyBorder(10, 0, -4, 0));
+		JLabel lblTitle = new JLabel(title);
+		lblTitle.setFont(font);
+		lblTitle.setForeground(whiteTheme);
+		//lblTitle.setMargin(new Insets(10,0,0,0));
+		JButton btnClose = new JButton("X");
+		btnClose.setFont(font);
+		btnClose.setOpaque(false);
+		btnClose.setForeground(greyTheme);
+		btnClose.setBackground(blackTheme);
+		btnClose.setBorder(BorderFactory.createEmptyBorder());
+		GridBagConstraints gbc = new GridBagConstraints();
+
+		pnlTab.add(lblTitle, BorderLayout.WEST);
+
+		pnlTab.add(btnClose,BorderLayout.EAST);
+
+		panel.setTabComponentAt(index, pnlTab);
 
 		textArea.setFile(new File("new " + (panel.getTabCount() + 1) + ".txt"));
 
@@ -1385,40 +1415,43 @@ public class Editor implements ActionListener {
 	//actually handles opening the file.
 	public void openFile(File file) {
 
-		//outer panel with text in it
-		JPanel pane = new JPanel(new BorderLayout());
 
-		JPanel temp = new JPanel();
-
-		temp.setBackground(blackTheme);
-
-		//temp.setPreferredSize(new Dimension(50,0));
-
-		//creating line numbers area
-		LineNumberList lineNumbers = new LineNumberList(font);
+		if(file.exists()){
 
 
-		//lineNumbers.setMargin(new Insets(-5,0,0,0));
+			//outer panel with text in it
+			JPanel pane = new JPanel(new BorderLayout());
+
+			JPanel temp = new JPanel();
+
+			temp.setBackground(blackTheme);
+
+			//temp.setPreferredSize(new Dimension(50,0));
+
+			//creating line numbers area
+			LineNumberList lineNumbers = new LineNumberList(font);
 
 
-		temp.add(lineNumbers);
+			//lineNumbers.setMargin(new Insets(-5,0,0,0));
 
-		pane.add(temp,BorderLayout.WEST);
 
-		TextAreaPanel textArea = new TextAreaPanel(styleContext);
+			temp.add(lineNumbers);
 
-		String fileName = file.getName();
+			pane.add(temp,BorderLayout.WEST);
 
-		System.out.println(fileName);
-		textArea.setFile(file);
+			TextAreaPanel textArea = new TextAreaPanel(styleContext);
 
-		pane.add(textArea,BorderLayout.CENTER);
+			String fileName = file.getName();
 
-		Scroller tab = new Scroller(pane);
+			System.out.println(fileName);
+			textArea.setFile(file);
 
-		panel.addTab(file.getName(), tab);
+			pane.add(textArea,BorderLayout.CENTER);
 
-		if (file.exists()) {
+			Scroller tab = new Scroller(pane);
+
+			panel.addTab(file.getName(), tab);
+
 			BufferedReader reader = null;
 
 			try {
@@ -1495,7 +1528,7 @@ public class Editor implements ActionListener {
 
 		else {
 
-			JOptionPane.showMessageDialog(frame, "File " + textArea.getFileName() + " does not exist.");
+			JOptionPane.showMessageDialog(frame, "File " + file.getName() + " does not exist.");
 
 		}
 	}
