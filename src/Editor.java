@@ -93,6 +93,8 @@ public class Editor implements ActionListener {
 	private RunasListener runasListener;
 
 	private FileOpenListener fileOpenListener;
+
+	private ButtonCloseListener buttonCloseListener;
 	//HashMap containing al the keywords for every language
 	//Outer String is the language, inner string is the section of keywords, and HashSet actually contains the keywords
 	private HashMap<String,HashMap<String,HashSet<String>>> keywords = new HashMap<String,HashMap<String,HashSet<String>>>();
@@ -115,7 +117,7 @@ public class Editor implements ActionListener {
 
 	private static Color greenTheme = new Color(84,130,0);
 	private static Color blackTheme = new Color(38,38,38);
-	private static Color greyTheme = new Color(128, 129, 135);
+	private static Color greyTheme = new Color(63, 65, 68);
 	private static Color whiteTheme = new Color(239,237,230);
 	private static Color yellowTheme = new Color(226,244,66);
 	private static Color transparentTheme = new Color(1f,0f,0f,0f);
@@ -130,6 +132,20 @@ public class Editor implements ActionListener {
 	private static Color orangeWords = new Color(229, 161, 36);
 	private static Color redWords = new Color(175, 14, 14);
 	//This class listens to the select language menu buttons, and changes active keywords depending on what the user selects
+
+
+	class ButtonCloseListener implements ActionListener{
+
+
+		public void actionPerformed(ActionEvent e){
+
+			CrossButton source = (CrossButton)e.getSource();
+
+			System.out.println("parent: " + source.getParent().getParent());
+			panel.remove(source.getParentTab());
+
+		}
+	}
 	class LanguageListener implements ActionListener{
 
 		public void actionPerformed(ActionEvent e){
@@ -283,6 +299,7 @@ public class Editor implements ActionListener {
 
 		languageListener = new LanguageListener();
 		fileOpenListener = new FileOpenListener();
+		buttonCloseListener = new ButtonCloseListener();
 		//runasListener = new RunasListener
 
 	}
@@ -932,13 +949,9 @@ public class Editor implements ActionListener {
 		lblTitle.setFont(font);
 		lblTitle.setForeground(whiteTheme);
 		//lblTitle.setMargin(new Insets(10,0,0,0));
-		JButton btnClose = new JButton("X");
-		btnClose.setFont(font);
-		btnClose.setOpaque(false);
-		btnClose.setForeground(greyTheme);
-		btnClose.setBackground(blackTheme);
-		btnClose.setBorder(BorderFactory.createEmptyBorder());
-		GridBagConstraints gbc = new GridBagConstraints();
+		CrossButton btnClose = new CrossButton((Scroller)panel.getComponentAt(index));
+		btnClose.addActionListener(buttonCloseListener);
+
 
 		pnlTab.add(lblTitle, BorderLayout.WEST);
 
@@ -1270,7 +1283,11 @@ public class Editor implements ActionListener {
 	//handles closing a tab/file
 	public void handleClose() {
 
-		int selected = panel.getSelectedIndex();
+		handleClose(panel.getSelectedIndex());
+	}
+
+	public void handleClose(int selected){
+
 
 		if (savedFiles.get(selected)) {
 
@@ -1451,6 +1468,25 @@ public class Editor implements ActionListener {
 			Scroller tab = new Scroller(pane);
 
 			panel.addTab(file.getName(), tab);
+
+			int index = panel.getTabCount()-1;
+
+			JPanel pnlTab = new JPanel(new BorderLayout());
+			pnlTab.setOpaque(false);
+			pnlTab.setBorder(BorderFactory.createEmptyBorder(10, 0, -4, 0));
+			JLabel lblTitle = new JLabel(file.getName()+"  ");
+			lblTitle.setFont(font);
+			lblTitle.setForeground(whiteTheme);
+			//lblTitle.setMargin(new Insets(10,0,0,0));
+			CrossButton btnClose = new CrossButton((Scroller)panel.getComponentAt(index));
+			btnClose.addActionListener(buttonCloseListener);
+
+
+			pnlTab.add(lblTitle, BorderLayout.WEST);
+
+			pnlTab.add(btnClose,BorderLayout.EAST);
+
+			panel.setTabComponentAt(index, pnlTab);
 
 			BufferedReader reader = null;
 

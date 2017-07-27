@@ -389,93 +389,95 @@ public class TextAreaPanel extends JPanel {
 			e.printStackTrace();
 		}
 
-		StyledDocument temp = new DefaultStyledDocument();
+		if(d.getLength()>1){
+			StyledDocument temp = new DefaultStyledDocument();
 
-		//temp.insertString(0,text,normalAttributes);
+			//temp.insertString(0,text,normalAttributes);
 
-		textArea.setStyledDocument(temp);
+			textArea.setStyledDocument(temp);
 
-		//temp.insertString(0,text,normalAttributes);
+			//temp.insertString(0,text,normalAttributes);
 
 
-		Matcher m;
-		if (!text.isEmpty()) {
-			int i = 0;
-			if (Character.isAlphabetic(text.charAt(i))) {
-				i++;
-				while (i < text.length() && Character.isAlphabetic(text.charAt(i))) {
-					i++;
-				}
-				String word = text.substring(0, i);
-				System.out.println("word: " + word);
-				String style = getKeywordStyle(word);
-				if (style != null) {
-					currentUndo = true;
-					d.remove(0, i);
-					d.insertString(0, word, styleContext.getStyle(style));
-				}
-			}
-			//regex pattern to find words within the text
-			Pattern p = Pattern.compile(keywordRegex);
-
-			m = p.matcher(text);
-
-			System.out.println("finding keywords: ");
-
-			//finding words and coloring them if they are keywords
-			while (m.find()) {
-
-				String word = m.group();
-
-				//System.out.println(keywords);
-				System.out.println(word);
-
-				//returns the style associated with the keyword or null if the word is not a keyword
-				String style = getKeywordStyle(word);
-				if (style != null) {
-					int start = m.start();
-					System.out.println("start: " + start);
-					currentUndo = true;
-					d.remove(start, word.length());
-					d.insertString(start, word, styleContext.getStyle(style));
-				}
-
-			}
-
-			//this is checking the end of the text for keywords, because the regex pattern will not find it if there isn't whitespace before and after a word
-			if (i < text.length()-1) {
-				i = text.length() - 1;
+			Matcher m;
+			if (!text.isEmpty()) {
+				int i = 0;
 				if (Character.isAlphabetic(text.charAt(i))) {
-					i--;
-					while (Character.isAlphabetic(text.charAt(i))) {
-						i--;
-					}
 					i++;
-					String word = text.substring(i, text.length());
-					System.out.println("Word at end of string: " + word);
+					while (i < text.length() && Character.isAlphabetic(text.charAt(i))) {
+						i++;
+					}
+					String word = text.substring(0, i);
+					System.out.println("word: " + word);
 					String style = getKeywordStyle(word);
 					if (style != null) {
-						//removes and then inserts the string with the correct style
 						currentUndo = true;
-						d.remove(i, word.length());
-						d.insertString(i, word, styleContext.getStyle(style));
+						d.remove(0, i);
+						d.insertString(0, word, styleContext.getStyle(style));
 					}
+				}
+				//regex pattern to find words within the text
+				Pattern p = Pattern.compile(keywordRegex);
 
-					else{
+				m = p.matcher(text);
+
+				System.out.println("finding keywords: ");
+
+				//finding words and coloring them if they are keywords
+				while (m.find()) {
+
+					String word = m.group();
+
+					//System.out.println(keywords);
+					System.out.println(word);
+
+					//returns the style associated with the keyword or null if the word is not a keyword
+					String style = getKeywordStyle(word);
+					if (style != null) {
+						int start = m.start();
+						System.out.println("start: " + start);
 						currentUndo = true;
-						d.remove(i,word.length());
-						d.insertString(i, word, styleContext.getStyle("standard"));
+						d.remove(start, word.length());
+						d.insertString(start, word, styleContext.getStyle(style));
 					}
 
 				}
-			}
 
-			textArea.setStyledDocument(d);
+				//this is checking the end of the text for keywords, because the regex pattern will not find it if there isn't whitespace before and after a word
+				if (i < text.length()-1) {
+					i = text.length() - 1;
+					if (Character.isAlphabetic(text.charAt(i))) {
+						i--;
+						while (Character.isAlphabetic(text.charAt(i))) {
+							i--;
+						}
+						i++;
+						String word = text.substring(i, text.length());
+						System.out.println("Word at end of string: " + word);
+						String style = getKeywordStyle(word);
+						if (style != null) {
+							//removes and then inserts the string with the correct style
+							currentUndo = true;
+							d.remove(i, word.length());
+							d.insertString(i, word, styleContext.getStyle(style));
+						}
+
+						else{
+							currentUndo = true;
+							d.remove(i,word.length());
+							d.insertString(i, word, styleContext.getStyle("standard"));
+						}
+
+					}
+				}
+
+				textArea.setStyledDocument(d);
+			}
 		}
 
-		double stopTime = System.currentTimeMillis();
+			double stopTime = System.currentTimeMillis();
 
-		System.out.println("time took updating: " + (stopTime-startTime));
+			System.out.println("time took updating: " + (stopTime-startTime));
 
 	}
 
@@ -499,6 +501,7 @@ public class TextAreaPanel extends JPanel {
 			}
 
 			else{
+				/*
 				//regex pattern to find words within inserted text
 				Pattern p = Pattern.compile(keywordRegex);
 
@@ -571,7 +574,9 @@ public class TextAreaPanel extends JPanel {
 
 					}
 
-				textArea.setCaretPosition(offset+length);
+				textArea.setCaretPosition(offset+length);*/
+
+					super.insertString(fb,offset,text,attributeSet);
 				}
 
 			}
