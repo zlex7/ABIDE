@@ -8,7 +8,7 @@ ABIDE is a text editor/IDE written in Java. It currently has support for creatin
 
 # Planned Changes
 
-I plan on adding support for running java and python programs within JText, as well as on the fly compiling (similarly to eclipse IDE), and a cleaner UI for customization.
+I plan on adding support for running java and python programs within ABIDE, as well as on the fly compiling (similarly to eclipse IDE), and a cleaner UI for customization.
 
 # Contribute
 
