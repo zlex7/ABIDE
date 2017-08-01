@@ -3,3 +3,5 @@ C:\Users\alex-wlezien\Desktop\Github Projects\JTextEdit\src\Editor.java
 C:\Users\AW22398\Documents\blank_user.xlsx
 C:\Users\AW22398\Desktop\JSONNow.html
 C:\Users\AW22398\Desktop\temp.css
+C:\Users\AW22398\Desktop\JTextEdit\src\GraphicsRunner.java
+C:\Users\AW22398\Desktop\JSON-Parser\src\JSONMain.java

@@ -20,6 +20,8 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
@@ -36,6 +38,10 @@ public class TextAreaPanel extends JPanel {
 
 	//the underlying text component
 	JTextPane textArea = new JTextPane();
+
+	DocumentListener dlistener;
+
+	LineNumberList lineNumbers;
 
 	//the file that is represented by this TextAreaPanel instance
 	File file;
@@ -166,6 +172,26 @@ public class TextAreaPanel extends JPanel {
 	public String getFilePath() {
 
 		return file.getAbsolutePath();
+	}
+
+	public void setDocListener(DocumentListener dlistener){
+
+		this.dlistener = dlistener;
+	}
+
+	public DocumentListener getDocListener(){
+
+		return dlistener;
+	}
+
+	public void setLineNumbers(LineNumberList lineNumbers){
+
+		this.lineNumbers = lineNumbers;
+	}
+
+	public LineNumberList getLineNumbers(){
+
+		return lineNumbers;
 	}
 
 	//sets the keywords with a new HashMap<>

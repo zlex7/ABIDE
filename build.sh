@@ -2,6 +2,6 @@
 # Compile and run java file
 
 cd src
-javac * -d ../bin
+javac *.java -d ../bin
 cd ../bin
 java GraphicsRunner

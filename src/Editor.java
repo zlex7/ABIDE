@@ -58,6 +58,9 @@ import javax.swing.ImageIcon;
 import java.awt.Container;
 import javax.swing.BorderFactory;
 import javax.swing.border.EmptyBorder;
+import javax.swing.JTextPane;
+
+import java.lang.Thread;
 
 public class Editor implements ActionListener {
 
@@ -163,8 +166,10 @@ public class Editor implements ActionListener {
 
 			if(scroller != null){
 				TextAreaPanel temp = scroller.getTextArea();
+				temp.getTextArea().getDocument().removeDocumentListener(temp.getDocListener());
 				temp.setKeywords(keywords.get(language.getText()));
 				temp.setKeywordListener();
+				setLineListener(temp,temp.getLineNumbers());
 			}
 		}
 	}
@@ -181,12 +186,31 @@ public class Editor implements ActionListener {
 			try{
 				compileAndRun(runasLanguage.getText());
 			}
+
 			catch(Exception err){
 				err.printStackTrace();
 			}
+
 		}
 
 		public void compileAndRun(String lang) throws IOException, InterruptedException{
+
+			
+			TextAreaPanel textArea = ((Scroller)panel.getSelectedComponent()).getTextArea();
+
+			String filePath = textArea.getFilePath();
+
+			System.out.println("file path: " + filePath);
+
+			filePath = filePath.substring(0,filePath.lastIndexOf("\\"));
+
+			System.out.println("file path: " + filePath);
+
+			String fileName = textArea.getFileName();
+
+			fileName = fileName.substring(0,fileName.indexOf("."));
+
+			System.out.println("file name: " + fileName);
 
 			//switch statement that actually does the work of compiling and running a program
 			//TODO: Add console functionality as well as "projects" to organize code
@@ -194,13 +218,11 @@ public class Editor implements ActionListener {
 
 			case "Java":
 
-				Runtime runtime = Runtime.getRuntime();
+				RunThread runProgram = new RunThread(filePath,fileName);
 
-				Process compile = runtime.exec("javac");
+				runProgram.start();
 
-				compile.waitFor();
-
-				Process run = runtime.exec("java");
+				break;
 			}
 		}
 
@@ -300,7 +322,7 @@ public class Editor implements ActionListener {
 		languageListener = new LanguageListener();
 		fileOpenListener = new FileOpenListener();
 		buttonCloseListener = new ButtonCloseListener();
-		//runasListener = new RunasListener
+		runasListener = new RunasListener();
 
 	}
 
@@ -487,7 +509,7 @@ public class Editor implements ActionListener {
 
 			JMenuItem item = new JMenuItem(s);
 			setKeyMnemonic(item);
-			//item.addActionListener(runasListener);
+			item.addActionListener(runasListener);
 			runasMenu.add(item);
 
 		}
@@ -690,7 +712,7 @@ public class Editor implements ActionListener {
 
 		Document d = area.getDocument();
 
-		d.addDocumentListener(new DocumentListener() {
+		DocumentListener dlistener = new DocumentListener() {
 
 			 public void insertUpdate(DocumentEvent e) {
 
@@ -733,7 +755,11 @@ public class Editor implements ActionListener {
 			}
 
 
-		});
+		};
+
+		p.setDocListener(dlistener);
+
+		d.addDocumentListener(dlistener);
 	}
 
 	class FileOpenListener implements ActionListener{
@@ -929,6 +955,8 @@ public class Editor implements ActionListener {
 		catch(Exception e){
 			e.printStackTrace();
 		}
+
+		textArea.setLineNumbers(lineNumbers);
 
 		setLineListener(textArea,lineNumbers);
 
@@ -1550,6 +1578,7 @@ public class Editor implements ActionListener {
 				lineNumbers.drawLineNumbers(lines);
 			}
 
+			textArea.setLineNumbers(lineNumbers);
 
 			setLineListener(textArea,lineNumbers);
 
