@@ -921,6 +921,10 @@ public class Editor implements ActionListener {
 
 				handleFind();
 				break;
+			case "Preferences":
+
+				handlePreferences();
+				break;
 			case "Close":
 
 				handleClose();
@@ -949,7 +953,7 @@ public class Editor implements ActionListener {
 
 		temp.setBackground(blackTheme);
 
-		temp.setPreferredSize(new Dimension(50,0));
+		//temp.setPreferredSize(new Dimension(75,0));
 
 		//System.out.println(temp.getBackground());
 
@@ -1629,6 +1633,12 @@ public class Editor implements ActionListener {
 
 	}
 
+
+	public void handlePreferences(){
+
+
+		JFrame preferences = new JFrame("Preferences");
+	}
 	//TODO: May handle running programs. That may be the job of RunasListener Instead.
 	public void handleRun(){
 

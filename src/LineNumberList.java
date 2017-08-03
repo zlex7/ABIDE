@@ -43,7 +43,7 @@ public class LineNumberList extends JTextArea{
 
 		setForeground(whiteTheme);
 
-		setMargin(new Insets(-5,10,10,0));
+		setMargin(new Insets(-5,10,0,10));
 
 		DefaultCaret caret = (DefaultCaret)getCaret();
 

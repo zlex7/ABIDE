@@ -172,7 +172,7 @@ public class TextAreaPanel extends JPanel {
 	public String getFileExtension(){
 
 		return getFileName().substring(getFileName().indexOf(".")+1);
-		
+
 	}
 
 	public String getFilePath() {
@@ -349,53 +349,57 @@ public class TextAreaPanel extends JPanel {
 	public String getKeywordStyle(String word) {
 
 		int length = word.length();
-		if(length>0){
+		
+		if(!keywords.isEmpty()){
 
-			/*
+			if(length>0){
+				/*
 
-				this is a test comment
-			*/
+					this is a test comment
+				*/
 
-			char first = word.charAt(0);
+				char first = word.charAt(0);
 
-			if(first=='"'){
+				if(first=='"'){
 
-				return "strings";
-			}
-
-			else if(first=='.' || first=='!' || first=='-' || first=='+' || first=='*'  || first=='='){
-
-				return "periods";
-			}
-
-			else if(first=='/'){
-
-				if(length>1){
-					char second = word.charAt(1);
-					if(second=='/' || second=='*'){
-						return "comments";
-					}
+					return "strings";
 				}
 
-				else{
+				else if(first=='.' || first=='!' || first=='-' || first=='+' || first=='*'  || first=='='){
 
 					return "periods";
 				}
 
-			}
+				else if(first=='/'){
 
-			else if(Character.isUpperCase(first)){
+					if(length>1){
+						char second = word.charAt(1);
+						if(second=='/' || second=='*'){
+							return "comments";
+						}
+					}
 
-				return "classes";
-			}
+					else{
 
-			char last = word.charAt(word.length()-1);
+						return "periods";
+					}
 
-			if(last=='('){
+				}
 
-				return "periods";
+				else if(Character.isUpperCase(first)){
+
+					return "classes";
+				}
+
+				char last = word.charAt(word.length()-1);
+
+				if(last=='('){
+
+					return "periods";
+				}
 			}
 		}
+			
 
 
 		return keywords.get(word);
@@ -754,7 +758,7 @@ public class TextAreaPanel extends JPanel {
                            if(count<6){
                            	System.out.println("making yellow : \"" + d.getText(lastIndex,index-lastIndex+1) + "\"");
                            }
-                           super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
+                           super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle(getKeywordStyle("\"")));
 
                       		}
 
@@ -1084,7 +1088,7 @@ public class TextAreaPanel extends JPanel {
                            if(count<6){
                            	System.out.println("making yellow : \"" + d.getText(lastIndex,index-lastIndex+1) + "\"");
                            }
-                           super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle("strings"));
+                           super.replace(fb,lastIndex,index-lastIndex+1,d.getText(lastIndex,index-lastIndex+1),styleContext.getStyle(getKeywordStyle("\"")));
 
                       		}
 
