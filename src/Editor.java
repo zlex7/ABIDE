@@ -184,7 +184,23 @@ public class Editor implements ActionListener {
 			JMenuItem runasLanguage = (JMenuItem)e.getSource();
 
 			try{
-				compileAndRun(runasLanguage.getText());
+				String text = runasLanguage.getText();
+
+				if(text.equals("Run")){
+					
+					TextAreaPanel currentArea = ((Scroller)panel.getSelectedComponent()).getTextArea();
+
+					String extension = currentArea.getFileExtension();
+
+					extension = extension.substring(0,1).toUpperCase() + extension.substring(1).toLowerCase();
+
+					compileAndRun(extension);
+				}	
+
+				else{
+
+					compileAndRun(text);
+				}
 			}
 
 			catch(Exception err){
@@ -221,6 +237,12 @@ public class Editor implements ActionListener {
 				RunThread runProgram = new RunThread(filePath,fileName);
 
 				runProgram.start();
+
+				break;
+
+			default:
+
+				JOptionPane.showMessageDialog(frame, "That file extension is not supported.");
 
 				break;
 			}
@@ -347,7 +369,7 @@ public class Editor implements ActionListener {
 		parseRecentFiles(new File("../recent.txt"));
 
 		//the outer window
-		frame = new JFrame("Text Editor");
+		frame = new JFrame("ABIDE");
 
 		ImageIcon JT = new ImageIcon("../images/JT.png");
 
@@ -496,7 +518,10 @@ public class Editor implements ActionListener {
 
 			JMenuItem item = new JMenuItem(s);
 			setKeyMnemonic(item);
-			item.addActionListener(this);
+			if(s.equals("Run")){
+				
+				item.addActionListener(runasListener);
+			}
 			runMenu.add(item);
 
 		}
@@ -853,11 +878,6 @@ public class Editor implements ActionListener {
 
 			switch (source.getText()) {
 
-			case "Run":
-
-				handleRun();
-
-				break;
 			case "New":
 
 				handleNew();

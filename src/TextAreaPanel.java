@@ -169,10 +169,17 @@ public class TextAreaPanel extends JPanel {
 
 	}
 
+	public String getFileExtension(){
+
+		return getFileName().substring(getFileName().indexOf(".")+1);
+		
+	}
+
 	public String getFilePath() {
 
 		return file.getAbsolutePath();
 	}
+
 
 	public void setDocListener(DocumentListener dlistener){
 
