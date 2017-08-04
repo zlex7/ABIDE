@@ -137,6 +137,16 @@ public class Editor implements ActionListener {
 	//This class listens to the select language menu buttons, and changes active keywords depending on what the user selects
 
 
+	class SettingsListener implements ActionListener{
+
+		public void actionPerformed(ActionEvent e){
+
+
+			
+		}
+
+	}
+
 	class ButtonCloseListener implements ActionListener{
 
 
@@ -1638,6 +1648,10 @@ public class Editor implements ActionListener {
 
 
 		JFrame preferences = new JFrame("Preferences");
+
+		SettingsPanel main = new SettingsPanel();
+
+		
 	}
 	//TODO: May handle running programs. That may be the job of RunasListener Instead.
 	public void handleRun(){
