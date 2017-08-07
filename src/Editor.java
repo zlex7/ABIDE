@@ -59,6 +59,11 @@ import java.awt.Container;
 import javax.swing.BorderFactory;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JTextPane;
+import javax.swing.JLabel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerListModel;
+import javax.swing.SpringLayout;
+
 
 import java.lang.Thread;
 
@@ -85,6 +90,8 @@ public class Editor implements ActionListener {
 	String[] runItems = {"Run"};
 	String[] runasItems = {"Java"};
 	String[] preferenceItems = {"Settings"};
+
+	String[] fontSizes = new String[100];
 
 	//This lays out which extension maps to which programming language
 	private HashMap<String,String> extToLang = new HashMap<String,String>();
@@ -142,7 +149,7 @@ public class Editor implements ActionListener {
 		public void actionPerformed(ActionEvent e){
 
 
-			
+
 		}
 
 	}
@@ -356,6 +363,10 @@ public class Editor implements ActionListener {
 		buttonCloseListener = new ButtonCloseListener();
 		runasListener = new RunasListener();
 
+		for(int i =0;i<fontSizes.length;i++){
+
+			fontSizes[i]=Integer.toString(i+1);
+		}
 	}
 
 	public static void setUIFont (javax.swing.plaf.FontUIResource f){
@@ -555,7 +566,7 @@ public class Editor implements ActionListener {
 
 			JMenuItem item = new JMenuItem(s);
 			setKeyMnemonic(item);
-			//item.addActionListener(runasListener);
+			item.addActionListener(this);
 			preferenceMenu.add(item);
 
 		}
@@ -863,6 +874,9 @@ public class Editor implements ActionListener {
 
 			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y,ActionEvent.CTRL_MASK));
 			break;
+		case "Preferences":
+
+			break;
 		case "Close":
 
 			item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,ActionEvent.ALT_MASK));
@@ -931,7 +945,7 @@ public class Editor implements ActionListener {
 
 				handleFind();
 				break;
-			case "Preferences":
+			case "Settings":
 
 				handlePreferences();
 				break;
@@ -1211,13 +1225,15 @@ public class Editor implements ActionListener {
 
 			public void update() {
 
+				System.out.println("SAVE LISTENER BEING CALLED");
 				System.out.println("selected: " + selected);
 				currentTab.setIsChanged(true);
 				int selected = panel.getSelectedIndex();
 				if(! (panel.getTitleAt(selected).charAt(0)=='*')){
-					panel.setTitleAt(selected,"*"+panel.getTitleAt(panel.getSelectedIndex()));
+					System.out.println("adding asterisk to title");
+					panel.setTitleAt(selected,"*"+panel.getTitleAt(selected));
 				}
-				currentTab.getTextArea().getDocument().removeDocumentListener(this);
+				//currentTab.getTextArea().getDocument().removeDocumentListener(this);
 				savedFiles.set(selected,false);
 			}
 		});
@@ -1646,11 +1662,65 @@ public class Editor implements ActionListener {
 
 	public void handlePreferences(){
 
+		JPanel pane = new JPanel(new SpringLayout());
+
+		pane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+
+
+		//initialize font size setting
+		JLabel fontSizeLabel = new JLabel("font size: ");
+
+		SpinnerListModel fontSizeModel = new SpinnerListModel(fontSizes);
+	
+		JSpinner fontSizeSpinner = new JSpinner(fontSizeModel);
+
+		fontSizeLabel.setLabelFor(fontSizeSpinner);
+
+		pane.add(fontSizeSpinner);
+
+
+		//initialize tab size setting
+		JLabel tabSizeLabel = new JLabel("tab size: ");
+
+		SpinnerListModel tabSizeModel = new SpinnerListModel(fontSizes);
+	
+		JSpinner tabSizeSpinner = new JSpinner(tabSizeModel);
+
+		tabSizeLabel.setLabelFor(tabSizeSpinner);
+
+		pane.add(tabSizeSpinner);
+
+
+		int numPairs = 2;
+
+		SpringUtilities.makeCompactGrid(pane,
+                                        numPairs, 2, //rows, cols
+                                        10, 10,        //initX, initY
+                                        6, 10);       //xPad, yPad
+
+		Scroller tab = new Scroller(pane);
+
+		String title = "settings.styles";
+
+		panel.addTab(title, tab);
+
+		int index = panel.getTabCount()-1; 
+
+		panel.setSelectedIndex(index);
+
+		/*
 
 		JFrame preferences = new JFrame("Preferences");
 
 		SettingsPanel main = new SettingsPanel();
 
+		preferences.setContentPane(main);
+
+		preferences.setSize(new Dimension(300,300));
+
+		preferences.setVisible(true);
+		
+		*/
 		
 	}
 	//TODO: May handle running programs. That may be the job of RunasListener Instead.
