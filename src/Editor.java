@@ -1018,12 +1018,14 @@ public class Editor implements ActionListener {
 
 		int index = panel.getTabCount()-1;
 
-		JPanel pnlTab = new JPanel(new BorderLayout());
+		TitlePanel pnlTab = new TitlePanel();
 		pnlTab.setOpaque(false);
 		pnlTab.setBorder(BorderFactory.createEmptyBorder(10, 0, -4, 0));
 		JLabel lblTitle = new JLabel(title);
 		lblTitle.setFont(font);
 		lblTitle.setForeground(whiteTheme);
+
+		pnlTab.setLabel(lblTitle);
 		//lblTitle.setMargin(new Insets(10,0,0,0));
 		CrossButton btnClose = new CrossButton((Scroller)panel.getComponentAt(index));
 		btnClose.addActionListener(buttonCloseListener);
@@ -1041,7 +1043,7 @@ public class Editor implements ActionListener {
 
 		savedFiles.add(true);
 
-		setSavedListener(textArea, panel.getTabCount() - 1);
+		setSavedListener(textArea);
 
 	}
 
@@ -1130,7 +1132,7 @@ public class Editor implements ActionListener {
 
 								savedFiles.set(selected, true);
 
-								setSavedListener(currentTab, selected);
+								setSavedListener(currentTab);
 							} catch (IOException err) {
 								JOptionPane.showMessageDialog(frame, "File could not be saved");
 							}
@@ -1169,7 +1171,7 @@ public class Editor implements ActionListener {
 
 							savedFiles.set(selected, true);
 
-							setSavedListener(currentTab, selected);
+							setSavedListener(currentTab);
 						} catch (IOException err) {
 							JOptionPane.showMessageDialog(frame, "File could not be saved");
 						}
@@ -1190,7 +1192,7 @@ public class Editor implements ActionListener {
 
 					savedFiles.set(selected, true);
 
-					setSavedListener(currentTab, selected);
+					setSavedListener(currentTab);
 
 				} catch (IOException err) {
 					JOptionPane.showMessageDialog(frame, "File could not be saved");
@@ -1207,7 +1209,7 @@ public class Editor implements ActionListener {
 	}
 
 	//this actually sets the listener to change the values in the savedFiles ArrayList<>
-	public void setSavedListener(TextAreaPanel currentTab, int selected) {
+	public void setSavedListener(TextAreaPanel currentTab) {
 
 		currentTab.getTextArea().getDocument().addDocumentListener(new DocumentListener() {
 
@@ -1226,12 +1228,19 @@ public class Editor implements ActionListener {
 			public void update() {
 
 				System.out.println("SAVE LISTENER BEING CALLED");
-				System.out.println("selected: " + selected);
 				currentTab.setIsChanged(true);
 				int selected = panel.getSelectedIndex();
-				if(! (panel.getTitleAt(selected).charAt(0)=='*')){
+				System.out.println("selected: " + selected);
+
+				TitlePanel titlePanel = (TitlePanel)panel.getTabComponentAt(selected);
+
+				JLabel title = titlePanel.getLabel();
+
+				if(! (title.getText().charAt(0)=='*')){
 					System.out.println("adding asterisk to title");
-					panel.setTitleAt(selected,"*"+panel.getTitleAt(selected));
+					System.out.println("new title is : " + "*"+title.getText());
+					title.setText("*"+title.getText());
+
 				}
 				//currentTab.getTextArea().getDocument().removeDocumentListener(this);
 				savedFiles.set(selected,false);
@@ -1288,7 +1297,7 @@ public class Editor implements ActionListener {
 
 							savedFiles.set(selected, true);
 
-							setSavedListener(currentTab, selected);
+							setSavedListener(currentTab);
 						} catch (IOException err) {
 							JOptionPane.showMessageDialog(frame, "File could not be saved");
 						}
@@ -1335,7 +1344,7 @@ public class Editor implements ActionListener {
 
 						Files.deleteIfExists(Paths.get(currentTab.getFilePath()));
 
-						setSavedListener(currentTab, selected);
+						setSavedListener(currentTab);
 					} catch (IOException err) {
 						JOptionPane.showMessageDialog(frame, "File could not be saved");
 					}
@@ -1549,12 +1558,14 @@ public class Editor implements ActionListener {
 
 			int index = panel.getTabCount()-1;
 
-			JPanel pnlTab = new JPanel(new BorderLayout());
+			TitlePanel pnlTab = new TitlePanel();
 			pnlTab.setOpaque(false);
 			pnlTab.setBorder(BorderFactory.createEmptyBorder(10, 0, -4, 0));
 			JLabel lblTitle = new JLabel(file.getName()+"  ");
 			lblTitle.setFont(font);
 			lblTitle.setForeground(whiteTheme);
+
+			pnlTab.setLabel(lblTitle);
 			//lblTitle.setMargin(new Insets(10,0,0,0));
 			CrossButton btnClose = new CrossButton((Scroller)panel.getComponentAt(index));
 			btnClose.addActionListener(buttonCloseListener);
@@ -1632,7 +1643,7 @@ public class Editor implements ActionListener {
 
 			setLineListener(textArea,lineNumbers);
 
-			setSavedListener(textArea, panel.getTabCount() - 1);
+			setSavedListener(textArea);
 
 
 			panel.setSelectedIndex(panel.getTabCount() - 1);
