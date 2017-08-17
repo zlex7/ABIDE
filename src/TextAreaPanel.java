@@ -168,7 +168,7 @@ public class TextAreaPanel extends JPanel {
 		return file.getName();
 
 	}
-
+	
 	public String getFileExtension(){
 
 		return getFileName().substring(getFileName().indexOf(".")+1);
@@ -349,7 +349,7 @@ public class TextAreaPanel extends JPanel {
 	public String getKeywordStyle(String word) {
 
 		int length = word.length();
-		
+
 		if(!keywords.isEmpty()){
 
 			if(length>0){
@@ -399,7 +399,7 @@ public class TextAreaPanel extends JPanel {
 				}
 			}
 		}
-			
+
 
 
 		return keywords.get(word);
@@ -610,8 +610,10 @@ public class TextAreaPanel extends JPanel {
 					}
 
 					}
+*/
 
-				textArea.setCaretPosition(offset+length);*/
+				//comment this out if things break
+				//textArea.setCaretPosition(offset+length);
 
 					super.insertString(fb,offset,text,attributeSet);
 				}

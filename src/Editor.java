@@ -204,7 +204,7 @@ public class Editor implements ActionListener {
 				String text = runasLanguage.getText();
 
 				if(text.equals("Run")){
-					
+
 					TextAreaPanel currentArea = ((Scroller)panel.getSelectedComponent()).getTextArea();
 
 					String extension = currentArea.getFileExtension();
@@ -212,7 +212,7 @@ public class Editor implements ActionListener {
 					extension = extension.substring(0,1).toUpperCase() + extension.substring(1).toLowerCase();
 
 					compileAndRun(extension);
-				}	
+				}
 
 				else{
 
@@ -228,7 +228,7 @@ public class Editor implements ActionListener {
 
 		public void compileAndRun(String lang) throws IOException, InterruptedException{
 
-			
+
 			TextAreaPanel textArea = ((Scroller)panel.getSelectedComponent()).getTextArea();
 
 			String filePath = textArea.getFilePath();
@@ -540,7 +540,7 @@ public class Editor implements ActionListener {
 			JMenuItem item = new JMenuItem(s);
 			setKeyMnemonic(item);
 			if(s.equals("Run")){
-				
+
 				item.addActionListener(runasListener);
 			}
 			runMenu.add(item);
@@ -1177,6 +1177,22 @@ public class Editor implements ActionListener {
 						}
 					}
 
+
+					int selectedPane = panel.getSelectedIndex();
+					System.out.println("selected: " + selected);
+
+					TitlePanel titlePanel = (TitlePanel)panel.getTabComponentAt(selectedPane);
+
+					JLabel title = titlePanel.getLabel();
+
+					if(title.getText().charAt(0)=='*'){
+						System.out.println("removing asterisk");
+						title.setText(file.getName()+"  ");
+
+					}
+
+					currentTab.setFile(file);
+
 				}
 
 			}
@@ -1197,6 +1213,25 @@ public class Editor implements ActionListener {
 				} catch (IOException err) {
 					JOptionPane.showMessageDialog(frame, "File could not be saved");
 				}
+
+				int selectedPane = panel.getSelectedIndex();
+				System.out.println("selected: " + selected);
+
+				TitlePanel titlePanel = (TitlePanel)panel.getTabComponentAt(selectedPane);
+
+				JLabel title = titlePanel.getLabel();
+
+				if(title.getText().charAt(0)=='*'){
+					System.out.println("removing asterisk");
+					title.setText(currentTab.getFileName()+"  ");
+
+				}
+
+				else{
+
+					title.setText(currentTab.getFileName());
+				}
+
 
 			}
 
@@ -1636,6 +1671,7 @@ public class Editor implements ActionListener {
 			}
 
 			else{
+				textArea.setKeywordListener();
 				lineNumbers.drawLineNumbers(lines);
 			}
 
@@ -1682,7 +1718,7 @@ public class Editor implements ActionListener {
 		JLabel fontSizeLabel = new JLabel("font size: ");
 
 		SpinnerListModel fontSizeModel = new SpinnerListModel(fontSizes);
-	
+
 		JSpinner fontSizeSpinner = new JSpinner(fontSizeModel);
 
 		fontSizeLabel.setLabelFor(fontSizeSpinner);
@@ -1694,7 +1730,7 @@ public class Editor implements ActionListener {
 		JLabel tabSizeLabel = new JLabel("tab size: ");
 
 		SpinnerListModel tabSizeModel = new SpinnerListModel(fontSizes);
-	
+
 		JSpinner tabSizeSpinner = new JSpinner(tabSizeModel);
 
 		tabSizeLabel.setLabelFor(tabSizeSpinner);
@@ -1715,7 +1751,7 @@ public class Editor implements ActionListener {
 
 		panel.addTab(title, tab);
 
-		int index = panel.getTabCount()-1; 
+		int index = panel.getTabCount()-1;
 
 		panel.setSelectedIndex(index);
 
@@ -1730,9 +1766,9 @@ public class Editor implements ActionListener {
 		preferences.setSize(new Dimension(300,300));
 
 		preferences.setVisible(true);
-		
+
 		*/
-		
+
 	}
 	//TODO: May handle running programs. That may be the job of RunasListener Instead.
 	public void handleRun(){
