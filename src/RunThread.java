@@ -21,6 +21,7 @@ public class RunThread extends Thread {
     	try{
 	        System.out.println("Running java program");
 
+					System.out.println("executing Runthread");
 			Runtime runtime = Runtime.getRuntime();
 
 			Process classpath = runtime.exec("java -classpath " + filePath);
@@ -29,11 +30,15 @@ public class RunThread extends Thread {
 
 			Process compile = runtime.exec("javac " + filePath + "\\*.java");
 
+			System.out.println("compiling");
+
 			compile.waitFor();
 
+			System.out.println("done compiling");
+			
 			Process run = runtime.exec("java " + fileName);
 
-			System.out.println("Running java " + fileName);
+			System.out.println("running");
 
 			run.getInputStream().close();
 

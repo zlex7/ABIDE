@@ -128,7 +128,7 @@ public class Editor implements ActionListener {
 	private static Color greenTheme = new Color(84,130,0);
 	private static Color blackTheme = new Color(38,38,38);
 	private static Color greyTheme = new Color(63, 65, 68);
-	private static Color whiteTheme = new Color(239,237,230);
+	private static Color whiteTheme = new Color(211, 211, 211);
 	private static Color yellowTheme = new Color(226,244,66);
 	private static Color transparentTheme = new Color(1f,0f,0f,0f);
 	private static Font fontTheme = new javax.swing.plaf.FontUIResource("Consolas",Font.PLAIN,20);
@@ -138,7 +138,7 @@ public class Editor implements ActionListener {
 	private static Color pinkWords = new Color(217, 66, 244);
 	private static Color greenWords = new Color(23, 137, 53);
 	private static Color purpleWords = new Color(87, 50, 168);
-	private static Color yellowWords = new Color(198,216,95);
+	private static Color yellowWords = new Color(28, 188, 0);
 	private static Color orangeWords = new Color(229, 161, 36);
 	private static Color redWords = new Color(175, 14, 14);
 	//This class listens to the select language menu buttons, and changes active keywords depending on what the user selects
@@ -1200,7 +1200,10 @@ public class Editor implements ActionListener {
 			else {
 
 				try {
-					FileWriter writer = new FileWriter(new File(currentTab.getFileName()));
+
+					System.out.println("saving fileName : " + currentTab.getFileName() + "fsdf");
+
+					FileWriter writer = new FileWriter(new File(currentTab.getFilePath()));
 
 					writer.write(currentTab.getText());
 
